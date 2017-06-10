@@ -44,7 +44,7 @@ def check_ip_exist(Table,Provided_IP):           #This function confirms whether
         if count > 0:               #If the entry for this IP exists already (There is 1 occurence of this IP in the table)
             return session.query(Table).filter(Table.IP == Provided_IP).one()
         else:
-            new_IP = Table(Score = str("000"),IP = Provided_IP)
+            new_IP = Table(IP = Provided_IP)
             session.add(new_IP)
             session.commit()
             return 0
@@ -67,7 +67,7 @@ def date_parse(date_string):                          #This function parses the 
 
 def get_current_info(column_number,review_count,Provided_IP,all_json):             #This function pulls current information from JSON output for a handful of keys
  
-    keys = ["results","updated"]
+    keys = ["tag","updated"]
     attr = keys[column_number]                              #Declarations
     key_count = 0
     current_info = ""
@@ -75,13 +75,7 @@ def get_current_info(column_number,review_count,Provided_IP,all_json):          
     if attr == "updated":   #If the attribute we are looking for is the created date or score
         return all_json["results"][0][attr]
     else:
-        for key in all_json["history"][0][attr]:  #For every report except the most recent report (Which is current, not history)
-            if (key_count >= 1):
-                current_info = current_info + " ," + str(key)
-            else:
-                current_info = str(key)
-                key_count += 1
-        return current_info
+        return all_json["results"][0][attr]  #For every report except the most recent report (Which is current, not history)
 
 if __name__ == "__main__":
     Provided_IP = str(sys.argv[2])
@@ -89,7 +83,7 @@ if __name__ == "__main__":
     IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
     IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
-    token = "API_KEY"                                    #INSERT API KEY HERE
+    token = "CYMON KEY"                                    #INSERT API KEY HERE
     headers = {'Authorization': "Token " + token, 'Accept': 'application/json'}
     url = "https://cymon.io"
 
@@ -120,6 +114,8 @@ already_categorized=[]
 current_categories = ""
 key_count = 0                                           #Declarations
 category_count = 0
+review_count = 0
+update_both_tables(4,get_current_info(0,review_count,Provided_IP,all_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
 update_both_tables(1,IP_Location,Provided_IP)
 review_count =0 
 for key in all_json['results']:    #For every entry in the json output 

@@ -52,7 +52,7 @@ def check_ip_exist(Table,Provided_IP):           #This function confirms whether
         if count > 0:               #If the entry for this IP exists already (There is 1 occurence of this IP in the table)
             return session.query(Table).filter(Table.IP == Provided_IP).one()
         else:
-            new_IP = Table(Score = str("000"),IP = Provided_IP)
+            new_IP = Table(IP = Provided_IP)
             session.add(new_IP)
             session.commit()
             return 0
@@ -93,8 +93,9 @@ def get_current_info(column_number,review_count,Provided_IP,all_json):          
 
 
 if __name__ == "__main__":
-    key = "XFORCE KEY"    #X-Force API Key and Password associated with your IBMID
-    password ="XFORCE_PASSWORD"
+    key = "XFORCE KEY"      #X-Force API Key and Password associated with your IBMID
+    password ="XFORCE PASSWORD"
+
 
 
     Provided_IP = str(sys.argv[2])
@@ -109,10 +110,10 @@ if __name__ == "__main__":
 
     Provided_IP = str(sys.argv[2])
 
-#    IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
- #   IP_exists_history = check_ip_exist(IP_History,Provided_IP)
+    IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
+    IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
-    token = "API_KEY"                               #INSERT API KEY HERE
+    token = "CYMON KEY"                               #INSERT API KEY HERE
     cymon_headers = {'Authorization': "Token " + token, 'Accept': 'application/json'}
     url = "https://cymon.io"
 

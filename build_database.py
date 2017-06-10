@@ -14,7 +14,7 @@ class IP_Current(Base):    #Table to hold most up to date score and Category on 
     IP = Column(String(250), primary_key=True)       #Here we define each column in the table, Notice that each column is also a normal Python instance attribute.
     Location = Column(String(250),nullable=True)
     Date = Column(String(250),nullable=True) 
-    Score = Column(String(250), nullable=False)
+    Score = Column(String(250), nullable=True)
     #Current Category is under "Cats" in JSON
     Category = Column(String(250),nullable=True)
     registrar_name = Column(String(250),nullable=True)
