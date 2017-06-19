@@ -17,9 +17,9 @@ This is used to query the cymon api and pull all relevant information regarding 
 <br>
 ## query_cymon_api_whois.py Usage
 This will do the same thing that `query_cymon_api.py` does but it will also pull WHOIS information from the X-Force API.** Be sure to enter you're X-Force Key and Password as well as your Cymon Key when running. **<br>
-`python query_cymon_api_whois.py -i <IP>`
+`python query_cymon_api_whois.py -i <IP>`<br><br>
 # Important Notes
-**The database is capable of handling both the WHOIS (query_cymon_api_whois.py) and standard (query_cymon_api.py) scripts, or a mix of both.** It will work just fine with or without whois data for those who do not have an interest or don't have a key to query the X-Force API. The WHOIS script was intended for use by those who believe that information is critical to the data and have access to the X-Force API. 
+**The database is capable of handling only the query_cymon_api.py script** To use the database with WHOIS information please proceed to the subdirectory `/whois`. 
 
 # What's Next
 Still working on integration within a database. Ability to query and store URL information as well as File hashes is being worked on. Ability to generate a CEF event upon a change within the database is also coming. 
