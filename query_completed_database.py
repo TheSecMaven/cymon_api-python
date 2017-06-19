@@ -64,8 +64,7 @@ if options.all1 is not "None":
     print_date( person.Date)
     print_score( person.Score)
     print_category( person.Category)
-    print_registrar_name(person.registrar_name)
-    print_registrar_org(person.registrar_organization)
+   
     current = session.query(IP_History).filter(IP_History.IP == options.all1).one()
     print "\nHistoric Information\n"                  #Print all the information in on this IP in the historic data table
     print_ip(current.IP)
@@ -73,8 +72,7 @@ if options.all1 is not "None":
     print_date(current.Date)
     print_score(current.Score)
     print_historic_category(current.Category)
-    print_registrar_name(current.registrar_name)
-    print_registrar_org(current.registrar_organization)
+  
 
 
 if len(sys.argv[1:]) == 0:
