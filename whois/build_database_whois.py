@@ -1,6 +1,7 @@
 #Miclain Keffeler
 #6/6/2017
 #This file creates 2 tables within the SQL Database that is named "IP_Report.db". One table is used to hold current information while the other is used to hold historic information
+#Makes columns for all original information as well as WHOIS Information
 import os
 import sys
 from sqlalchemy import Column, ForeignKey, Integer, String
@@ -17,6 +18,9 @@ class IP_Current(Base):    #Table to hold most up to date score and Category on 
     Score = Column(String(250), nullable=True)
     #Current Category is under "Cats" in JSON
     Category = Column(String(250),nullable=True)
+    registrar_name = Column(String(250),nullable=True)
+    registrar_organization = Column(String(250),nullable=True)
+
 class IP_History(Base):          #Table to hold historic scores, categories, and dates of an IP
     __tablename__ = 'address'
     IP = Column(String(250),primary_key=True)
@@ -24,6 +28,8 @@ class IP_History(Base):          #Table to hold historic scores, categories, and
     Date = Column(String(250),nullable=True)
     Score = Column(String(250),nullable=True)
     Category = Column(String(250), nullable=True)
+    registrar_name = Column(String(250),nullable=True)
+    registrar_organization = Column(String(250),nullable=True)
 
 engine = create_engine('sqlite:///IP_Report.db')      #Create an engine that stores data in the local directory, IP_Report.db file.
  

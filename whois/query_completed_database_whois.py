@@ -17,6 +17,9 @@ class IP_Current(Base):    #Table to hold most up to date score and Category on 
     Score = Column(String(250), nullable=True)
     #Current Category is under "Cats" in JSON
     Category = Column(String(250),nullable=True)
+    registrar_name = Column(String(250),nullable=True)
+    registrar_organization = Column(String(250),nullable=True)
+
 class IP_History(Base):          #Table to hold historic scores, categories, and dates of an IP
     __tablename__ = 'address'
     IP = Column(String(250),primary_key=True)
@@ -24,6 +27,8 @@ class IP_History(Base):          #Table to hold historic scores, categories, and
     Date = Column(String(250),nullable=True)
     Score = Column(String(250),nullable=True)
     Category = Column(String(250), nullable=True)
+    registrar_name = Column(String(250),nullable=True)
+    registrar_organization = Column(String(250),nullable=True)
 
 engine = create_engine('sqlite:///IP_Report.db')      #Create an engine that stores data in the local directory, IP_Report.db file.
  
