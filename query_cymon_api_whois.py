@@ -93,8 +93,9 @@ def get_current_info(column_number,review_count,Provided_IP,all_json):          
 
 
 if __name__ == "__main__":
-    key = "XFORCE KEY"      #X-Force API Key and Password associated with your IBMID
-    password ="XFORCE PASSWORD"
+    key = ""
+    password =""
+
 
 
 
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
     IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
-    token = "CYMON KEY"                               #INSERT API KEY HERE
+    token = ""                               #INSERT API KEY HERE
     cymon_headers = {'Authorization': "Token " + token, 'Accept': 'application/json'}
     url = "https://cymon.io"
 

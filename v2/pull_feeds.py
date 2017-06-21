@@ -21,19 +21,23 @@ from sqlalchemy.sql.expression import literal_column
 
 def send_request(apiurl, scanurl, headers):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
     output = open(sys.argv[2]+".json","w")    #Output all downloaded json to a file
-    apiurl = apiurl + "/?offset=0"
-    response = requests.get(apiurl, timeout=20)
+    apiurl = apiurl + "&offset=0"
+    print apiurl
+    print headers
+    response = requests.get(apiurl, headers=headers, timeout=20)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
     return all_json
 
 if __name__ == "__main__":
 
-    token = ""
-
     headers ={'Content-Type': 'application/json'}
-    url = "https://cymon.io"
-    post = {"Authorization":"Token" + token}
+    url = "https://api.cymon.io"
+    apiurl = url + "/v2/auth/login"
+    post = {"username":"mkkeffeler","password":"Keff4450"}
+    jwt = requests.post('https://api.cymon.io/v2/auth/login',data=json.dumps(post),headers=headers,verify=True)
+    mytoken = jwt.json()
+    print mytoken['jwt']
 
     parser = OptionParser()
     parser.add_option("--pull", "--pull", dest="s_category" , default="none",
