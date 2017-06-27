@@ -25,6 +25,6 @@ class IP_History(Base):          #Table to hold historic scores, categories, and
     Score = Column(String(250),nullable=True)
     Category = Column(String(250), nullable=True)
 
-engine = create_engine('sqlite:///IP_Report.db')      #Create an engine that stores data in the local directory, IP_Report.db file.
+engine = create_engine('sqlite:///pull_feeds/IP_Report.db')      #Create an engine that stores data in the local directory, IP_Report.db file.
  
 Base.metadata.create_all(engine)    #Create all tables in the engine. Equivalent to "Create table" statement in raw SQL.

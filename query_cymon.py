@@ -25,6 +25,7 @@ output = open(sys.argv[2]+".json","w")    #Output all downloaded json to a file
 
 whois = ""
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
+    print apiurl
     response = requests.get(apiurl, params='', headers=headers, timeout=20)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
@@ -80,11 +81,8 @@ def get_current_info(column_number,review_count,Provided_IP,all_json):          
 if __name__ == "__main__":
     Provided_IP = str(sys.argv[2])
 
-    IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
-    IP_exists_history = check_ip_exist(IP_History,Provided_IP)
-
-    token = "CYMON KEY"                                    #INSERT API KEY HERE
-    headers = {'Authorization': "Token " + token, 'Accept': 'application/json'}
+    token = "Token YOURTOKEN"                                    #INSERT API KEY HERE
+    headers = {'Authorization': token}
     url = "https://cymon.io"
 
 
@@ -97,15 +95,7 @@ if (options.s_ip is not "none"):    #If the -i option was used
     scanurl = options.s_ip
     apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/events/"
     all_json = send_request(apiurl, scanurl, headers,output)
-    apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/domains/"
-    output1 = open(sys.argv[2]+"-domains.json","w")
-    domain_json = send_request(apiurl, scanurl, headers,output1)
-    apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/urls/"
-    send_request(apiurl, scanurl, headers,output)
-    apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/timeline/"
-    send_request(apiurl,scanurl,headers,output)
-
-
+'''
 IP_Location = domain_json["results"][0]["name"]     #Used to hold categories of an IP or URL that have already been listed in the report.
 update_both_tables(1,IP_Location,Provided_IP)
 
@@ -137,6 +127,6 @@ for key in all_json['results']:    #For every entry in the json output
         already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
 
 update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
-
+'''
 if len(sys.argv[1:]) == 0:
     parser.print_help()
