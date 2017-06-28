@@ -1,0 +1,4 @@
+configparser
+sqlalchemy
+requests
+python-dateutil

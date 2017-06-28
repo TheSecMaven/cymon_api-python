@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from optparse import OptionParser
 import sys
-engine = create_engine('sqlite:///IP_Report.db')
+engine = create_engine('sqlite:///pull_feeds/IP_Report.db')
 Base = declarative_base()
 Base.metadata.bind = engine
 from sqlalchemy.orm import sessionmaker

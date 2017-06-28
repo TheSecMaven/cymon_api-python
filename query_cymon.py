@@ -17,8 +17,14 @@ from build_database import IP_Current, IP_History
 from sqlalchemy import exists
 import dateutil.parser
 from sqlalchemy.sql.expression import literal_column
+from configparser import ConfigParser
 
-engine = create_engine('sqlite:///IP_Report.db')   #Setup the Database
+config = ConfigParser()
+config.read('config.ini')
+token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
+
+
+engine = create_engine('sqlite:///pull_feeds/IP_Report.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
 session = DBSession()           #Must be able to query database
 output = open(sys.argv[2]+".json","w")    #Output all downloaded json to a file
@@ -67,7 +73,7 @@ def date_parse(date_string):                          #This function parses the 
     return parsed_date
 
 def get_current_info(column_number,review_count,Provided_IP,all_json):             #This function pulls current information from JSON output for a handful of keys
- 
+     
     keys = ["tag","updated"]
     attr = keys[column_number]                              #Declarations
     key_count = 0
@@ -81,7 +87,6 @@ def get_current_info(column_number,review_count,Provided_IP,all_json):          
 if __name__ == "__main__":
     Provided_IP = str(sys.argv[2])
 
-    token = "Token YOURTOKEN"                                    #INSERT API KEY HERE
     headers = {'Authorization': token}
     url = "https://cymon.io"
 
@@ -91,12 +96,19 @@ if __name__ == "__main__":
                       help="ip to be checked on cymon", metavar="ipaddress")                                           #Use this option to check an IP address
 (options, args) = parser.parse_args()
 
+IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
+IP_exists_history = check_ip_exist(IP_History,Provided_IP)
+
+
 if (options.s_ip is not "none"):    #If the -i option was used
     scanurl = options.s_ip
     apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/events/"
     all_json = send_request(apiurl, scanurl, headers,output)
-'''
-IP_Location = domain_json["results"][0]["name"]     #Used to hold categories of an IP or URL that have already been listed in the report.
+    apiurl = url + '/api/nexus/v1/ip/' + scanurl + '/domains/'
+    domain_json = send_request(apiurl,scanurl,headers,output)
+IP_Location = domain_json["results"][0]['name']
+print IP_Location
+     #Used to hold categories of an IP or URL that have already been listed in the report.
 update_both_tables(1,IP_Location,Provided_IP)
 
 
@@ -127,6 +139,5 @@ for key in all_json['results']:    #For every entry in the json output
         already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
 
 update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
-'''
 if len(sys.argv[1:]) == 0:
     parser.print_help()
