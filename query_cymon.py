@@ -18,12 +18,17 @@ from sqlalchemy import exists
 import dateutil.parser
 from sqlalchemy.sql.expression import literal_column
 from configparser import ConfigParser
+import urllib
+import getpass
 
 config = ConfigParser()
 config.read('config.ini')
 token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
-
-
+proxies = config.get('DEFAULT','Proxies')
+authuser = str(raw_input('What is the username for Proxy Auth: '))
+authpassword = getpass.getpass('Password for Proxy:')
+auth = authuser + ":" + authpassword
+proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
 engine = create_engine('sqlite:///pull_feeds/IP_Report.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
 session = DBSession()           #Must be able to query database
@@ -31,8 +36,7 @@ output = open(sys.argv[2]+".json","w")    #Output all downloaded json to a file
 
 whois = ""
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
-    print apiurl
-    response = requests.get(apiurl, params='', headers=headers, timeout=20)
+    response = requests.get(apiurl, params='',proxies=proxies, headers=headers,timeout=20)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
     return all_json
@@ -106,7 +110,10 @@ if (options.s_ip is not "none"):    #If the -i option was used
     all_json = send_request(apiurl, scanurl, headers,output)
     apiurl = url + '/api/nexus/v1/ip/' + scanurl + '/domains/'
     domain_json = send_request(apiurl,scanurl,headers,output)
-IP_Location = domain_json["results"][0]['name']
+if(domain_json['count'] != 0):
+    IP_Location = domain_json["results"][0]['name']
+else:
+    IP_Location = "Unknown"
 print IP_Location
      #Used to hold categories of an IP or URL that have already been listed in the report.
 update_both_tables(1,IP_Location,Provided_IP)
