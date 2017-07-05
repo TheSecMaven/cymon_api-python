@@ -1,0 +1,87 @@
+{
+    "from": 0, 
+    "hits": [
+        {
+            "description": "Brand targeted: Yahoo! Inc", 
+            "feed": "OpenPhish", 
+            "feed_id": "AVsGgHRIVjrVcoBZyoiV", 
+            "id": "946af44c088fa2eb5135cabd68d08a7e6858398c1836344066d7def635b27004", 
+            "ioc": {
+                "domain": "5gbfree.com", 
+                "hostname": "michealcole33.5gbfree.com", 
+                "ip": "209.90.88.140", 
+                "url": "http://michealcole33.5gbfree.com/cos/richieyahooo/index.htm"
+            }, 
+            "link": "https://openphish.com", 
+            "location": {
+                "city": "Orem", 
+                "country": "US", 
+                "point": {
+                    "lat": 40.2968, 
+                    "lon": -111.6761
+                }
+            }, 
+            "reported_by": "cymon", 
+            "tags": [
+                "phishing"
+            ], 
+            "timestamp": "2017-06-30T18:12:14.000Z", 
+            "title": "Phishing campaign targeting Yahoo! Inc"
+        }, 
+        {
+            "description": "Website: www.elcamex7.5gbfree.com \nIP: 209.90.88.140 \nClassification: PSH \nAdded: 6/28/2017 10:17:17 PM \nAdded By: TeMerc", 
+            "feed": "hosts-file.net", 
+            "feed_id": "AVsGZTOOVjrVcoBZyoiQ", 
+            "id": "b989c9a16518c3f4342ba39f84f5b3db5e9f76691020b01691eb370141433ecb", 
+            "ioc": {
+                "domain": "5gbfree.com", 
+                "hostname": "www.elcamex7.5gbfree.com", 
+                "ip": "209.90.88.140"
+            }, 
+            "link": "http://hosts-file.net/?s=www.elcamex7.5gbfree.com", 
+            "location": {
+                "city": "Orem", 
+                "country": "US", 
+                "point": {
+                    "lat": 40.2968, 
+                    "lon": -111.6761
+                }
+            }, 
+            "reported_by": "cymon", 
+            "tags": [
+                "phishing"
+            ], 
+            "timestamp": "2017-06-28T22:17:00.000Z", 
+            "title": "Phishing activity"
+        }, 
+        {
+            "description": "Brand targeted: Apple Inc.", 
+            "feed": "OpenPhish", 
+            "feed_id": "AVsGgHRIVjrVcoBZyoiV", 
+            "id": "7bd01c22381d058955115e17edb77127921fdd7df62df70ac358477a5556426d", 
+            "ioc": {
+                "domain": "5gbfree.com", 
+                "hostname": "www.elcamex7.5gbfree.com", 
+                "ip": "209.90.88.140", 
+                "url": "http://www.elcamex7.5gbfree.com/prince.php"
+            }, 
+            "link": "https://openphish.com", 
+            "location": {
+                "city": "Orem", 
+                "country": "US", 
+                "point": {
+                    "lat": 40.2968, 
+                    "lon": -111.6761
+                }
+            }, 
+            "reported_by": "cymon", 
+            "tags": [
+                "phishing"
+            ], 
+            "timestamp": "2017-06-28T21:27:37.000Z", 
+            "title": "Phishing campaign targeting Apple Inc."
+        }
+    ], 
+    "size": 3, 
+    "total": 6
+}

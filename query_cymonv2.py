@@ -20,6 +20,7 @@ from sqlalchemy.sql.expression import literal_column
 from configparser import ConfigParser
 import urllib
 import getpass
+import datetime
 
 config = ConfigParser()
 config.read('config.ini')
@@ -29,14 +30,14 @@ authuser = str(raw_input('What is the username for Proxy Auth: '))
 authpassword = getpass.getpass('Password for Proxy:')
 auth = authuser + ":" + authpassword
 proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
-engine = create_engine('sqlite:///pull_feeds/IP_Report.db')   #Setup the Database
+engine = create_engine('sqlite:///v2/IP_Reportv2.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
 session = DBSession()           #Must be able to query database
-output = open(sys.argv[2]+".json","w")    #Output all downloaded json to a file
+output = open('IPs/' + sys.argv[2]+".json","w")    #Output all downloaded json to a file
 
 whois = ""
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
-    print proxies
+    print apiurl
     response = requests.get(apiurl, params='',proxies=proxies, headers=headers,timeout=20)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
@@ -78,27 +79,42 @@ def date_parse(date_string):                          #This function parses the 
     return parsed_date
 
 def get_current_info(column_number,review_count,Provided_IP,all_json):             #This function pulls current information from JSON output for a handful of keys
-     
+    tags = ""
     keys = ["tag","updated"]
     attr = keys[column_number]                              #Declarations
     key_count = 0
     current_info = ""
 
     if attr == "updated":   #If the attribute we are looking for is the created date or score
-        return all_json["results"][0][attr]
-    else:
-        return all_json["results"][0][attr]  #For every report except the most recent report (Which is current, not history)
+        return all_json["hits"][0]['timestamp']
+    for tag in all_json['hits'][0]['tags']:
+        tags += tag + ' '
+    return tags
+
 
 if __name__ == "__main__":
     Provided_IP = str(sys.argv[2])
+    headers ={'Content-Type': 'application/json'}
+    url = "https://api.cymon.io/v2/"
+    apiurl = url + "/v2/auth/login"
+    cymon_user = str(raw_input('What is the username for Cymon v2: '))
+    cymon_password = getpass.getpass('Password for Cymon Account:')
+    post = {"username":cymon_user,"password":cymon_password}
+
+    jwt = requests.post('https://api.cymon.io/v2/auth/login',proxies=proxies,data=json.dumps(post),headers=headers,verify=True)
+    mytoken = jwt.json()
+    jwt = mytoken['jwt']
+
 
     headers = {'Authorization': token}
-    url = "https://cymon.io"
+    url = "https://api.cymon.io/v2/"
 
 
     parser = OptionParser()
-    parser.add_option("-i", "--ip", dest="s_ip" , default="none",
-                      help="ip to be checked on cymon", metavar="ipaddress")                                           #Use this option to check an IP address
+    parser.add_option("-i", "--ip", dest="s_ip" , default="none",  #Use this option to check an IP address
+                      help="ip to be checked on cymon", metavar="ipaddress")
+    parser.add_option("--domain", "--domain", dest="s_domain" , default="none",
+                      help="domain name to be checked on cymon", metavar="domain")                                           
 (options, args) = parser.parse_args()
 
 IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
@@ -107,45 +123,59 @@ IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
 if (options.s_ip is not "none"):    #If the -i option was used
     scanurl = options.s_ip
-    apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/events/"
-    all_json = send_request(apiurl, scanurl, headers,output)
-    apiurl = url + '/api/nexus/v1/ip/' + scanurl + '/domains/'
+    apiurl = url + "/ioc/search/ip/" + scanurl + "?startDate=" + str((datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')) + '&endDate=' + str(datetime.datetime.now().strftime('%Y-%m-%d')) + '&from=0&size=3'
     domain_json = send_request(apiurl,scanurl,headers,output)
-if(domain_json['count'] != 0):
-    IP_Location = domain_json["results"][0]['name']
-else:
-    IP_Location = "Unknown"
-print IP_Location
-     #Used to hold categories of an IP or URL that have already been listed in the report.
-update_both_tables(1,IP_Location,Provided_IP)
+    if(domain_json['total'] != 0):
+        IP_Location = str(domain_json["hits"][0]['location']['city']) + ',' + str(domain_json["hits"][0]['location']['country'])
+    else:
+        IP_Location = "Unknown"
+    print domain_json
+         #Used to hold categories of an IP or URL that have already been listed in the report.
+    
+    update_both_tables(1,IP_Location,Provided_IP)
 
 
-already_categorized=[]
-current_categories = ""
-key_count = 0                                           #Declarations
-category_count = 0
-review_count = 0
-update_both_tables(4,get_current_info(0,review_count,Provided_IP,all_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
-update_both_tables(1,IP_Location,Provided_IP)
-review_count =0 
-for key in all_json['results']:    #For every entry in the json output 
-    if(key['tag'] in already_categorized):                               #If this categorization has already been reported, don't report it again
-        continue
-    else:       #Since we already have this IP in our DB,
-            
-            
-        update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
-        if category_count == 0:    #If this is the first categorization that has been assigned to this IP
-            update_historic_category.Category = str(key['tag'])
-            category_count += 1
-        else:   #Otherwise we need commas and to keep what was already in there
-            update_historic_category.Category = update_historic_category.Category + " , " + str(key['tag'])
-            category_count += 1 
-        session.commit()
+    already_categorized=[]
+    current_categories = ""
+    key_count = 0                                           #Declarations
+    category_count = 0
+    review_count = 0
+    update_both_tables(4,get_current_info(0,review_count,Provided_IP,domain_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
+    update_both_tables(1,IP_Location,Provided_IP)
+    review_count =0 
+    for key in domain_json['hits']:    #For every entry in the json output 
+        for tag in key['tags']:
+            if(tag in already_categorized):                               #If this categorization has already been reported, don't report it again
+                continue
+            else:       #Since we already have this IP in our DB,
+                    
+                    
+                update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
+                if category_count == 0:    #If this is the first categorization that has been assigned to this IP
+                    update_historic_category.Category = str(tag)
+                    category_count += 1
+                else:   #Otherwise we need commas and to keep what was already in there
+                    update_historic_category.Category = update_historic_category.Category + " , " + str(tag)
+                    category_count += 1 
+                session.commit()
 
 
-        already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
+                already_categorized.append(tag)   #Add the category to the list of already printed categories so we don't repeat
 
-update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
+    update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,domain_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
+
+if (options.s_domain is not "none"):    #If the -i option was used
+    scanurl = options.s_domain
+    apiurl = url + "/ioc/search/domain/" + scanurl + "?startDate=" + str(datetime.datetime.today() - datetime.timedelta(days=7)) + '&endDate=' + str(datetime.datetime.today()) + '&from=0&size=3'
+    domain_json = send_request(apiurl,scanurl,headers,output)
+    if(domain_json['total'] != 0):
+        IP_Location = str(domain_json["hits"]['location']['city']) + ',' + str(domain_json["hits"]['location']['country'])
+    else:
+        IP_Location = "Unknown"
+
+    print domain_json
+    print IP_Location
+
+    
 if len(sys.argv[1:]) == 0:
     parser.print_help()
