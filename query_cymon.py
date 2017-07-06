@@ -25,10 +25,13 @@ config = ConfigParser()
 config.read('config.ini')
 token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
 proxies = config.get('DEFAULT','Proxies')
-authuser = str(raw_input('What is the username for Proxy Auth: '))
-authpassword = getpass.getpass('Password for Proxy:')
-auth = authuser + ":" + authpassword
-proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
+if(proxies == ""):
+    auth = ""
+else:
+    authuser = str(raw_input('What is the username for Proxy Auth: '))
+    authpassword = getpass.getpass('Password for Proxy:')
+    auth = authuser + ":" + authpassword
+    proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
 engine = create_engine('sqlite:///pull_feeds/IP_Report.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
 session = DBSession()           #Must be able to query database
@@ -36,7 +39,10 @@ output = open("IPs/" + sys.argv[3]+"v1.json","w")    #Output all downloaded json
 
 whois = ""
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
-    response = requests.get(apiurl, params='',proxies=proxies, headers=headers,timeout=20)
+    if(proxies == ""):
+        response = requests.get(apiurl, params='', headers=headers,timeout=20)
+    else:
+        response = requests.get(apiurl, params='',proxies=proxies, headers=headers,timeout=20)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
     return all_json
@@ -152,6 +158,7 @@ for key in all_json['results']:    #For every entry in the json output
 
         already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
 print 'All Historical Categorizations: ' + historic_categories
+print "Total Reports on this IP: " + str(all_json['count'])
 update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
 if len(sys.argv[1:]) == 0:
     parser.print_help()
