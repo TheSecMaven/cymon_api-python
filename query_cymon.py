@@ -1,3 +1,4 @@
+#!/az/arcsight/counteract_scripts/env/bin/python
 #Miclain Keffeler
 #6/8/2017 
 import requests
@@ -28,10 +29,12 @@ proxies = config.get('DEFAULT','Proxies')
 if(proxies == ""):
     auth = ""
 else:
-    authuser = str(raw_input('What is the username for Proxy Auth: '))
-    authpassword = getpass.getpass('Password for Proxy:')
+    #TODO need to change from hardcoded arg indexes
+    authuser = sys.argv[5] #str(input('What is the username for Proxy Auth: '))
+    authpassword = sys.argv[7] #getpass.getpass('Password for Proxy:')
     auth = authuser + ":" + authpassword
     proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
+
 engine = create_engine('sqlite:///pull_feeds/IP_Report.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
 session = DBSession()           #Must be able to query database
@@ -42,7 +45,7 @@ def send_request(apiurl, scanurl, headers,output):   #This function makes a requ
     if(proxies == ""):
         response = requests.get(apiurl, params='', headers=headers,timeout=20)
     else:
-        response = requests.get(apiurl, params='',proxies=proxies, headers=headers,timeout=20)
+        response = requests.get(apiurl, proxies=proxies, params='', headers=headers,timeout=20)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
     return all_json
@@ -53,7 +56,8 @@ def get_md5(filename):     #This function returns the MD5 hash of a provided fil
         md5 = hashlib.md5((f).read()).hexdigest()
         return md5
     except e:
-        print str(e)
+        print (str(e))
+		
 
 def check_ip_exist(Table,Provided_IP):           #This function confirms whether or not an entry already exists. If so, it returns the entry 
     while(1):
@@ -74,11 +78,11 @@ def update_both_tables(column_number,input_string,Provided_IP):              #Th
     setattr(input_current,str(literal_column(str(columner1))),str(input_string))         #Update current table with new information
     session.commit()
     if(str(columner1) == 'Location'):
-        print 'Domain Name: ' + input_string
+        print ('Domain Name: ' + input_string)
     elif(str(columner1) == 'Category'):
-        print 'Current Categorizations: ' + input_string
+        print ('Current Categorizations: ' + input_string)
     else:
-        print str(columner1) + ": " + input_string
+        print (str(columner1) + ": " + input_string)
     input_historic = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
     setattr(input_historic,str(literal_column(str(columner1))),str(input_string))   #Update historic table with new information
     session.commit()
@@ -109,6 +113,11 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-i", "--ip", dest="s_ip" , default="none",
                       help="ip to be checked on cymon", metavar="ipaddress")                                           #Use this option to check an IP address
+    parser.add_option("-u", "--user", dest="user_name" , default=None,
+                      help="Proxy Auth User Name", metavar="user")
+    parser.add_option("-p", "--password", dest="password", default=None,
+                      help="Proxy Auth Password", metavar="passss")
+
 (options, args) = parser.parse_args()
 Provided_IP = options.s_ip
 IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
@@ -125,7 +134,7 @@ if(domain_json['count'] != 0):
 else:
     IP_Location = "Unknown"
      
-print 'EVENT ID: ' + Event_ID
+print ('EVENT ID: ' + Event_ID)
 #Used to hold categories of an IP or URL that have already been listed in the report.
 update_both_tables(1,IP_Location,Provided_IP)
 
@@ -157,8 +166,8 @@ for key in all_json['results']:    #For every entry in the json output
 
 
         already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
-print 'All Historical Categorizations: ' + historic_categories
-print "Total Reports on this IP: " + str(all_json['count'])
+print ('All Historical Categorizations: ' + historic_categories)
+print ("Total Reports on this IP: " + str(all_json['count']))
 update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
 if len(sys.argv[1:]) == 0:
     parser.print_help()
