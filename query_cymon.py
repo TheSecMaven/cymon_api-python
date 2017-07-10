@@ -128,37 +128,40 @@ else:
 print 'EVENT ID: ' + Event_ID
 #Used to hold categories of an IP or URL that have already been listed in the report.
 update_both_tables(1,IP_Location,Provided_IP)
+if(all_json['count'] > 0):
+    already_categorized=[]
+    current_categories = ""
+    historic_categories = ""
+    key_count = 0                                           #Declarations
+    category_count = 0
+    review_count = 0
+    update_both_tables(4,get_current_info(0,review_count,Provided_IP,all_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
+    review_count =0 
+    for key in all_json['results']:    #For every entry in the json output 
+        if(key['tag'] in already_categorized):                               #If this categorization has already been reported, don't report it again
+            continue
+        else:       #Since we already have this IP in our DB,
+                
+                
+            update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
+            if category_count == 0:    #If this is the first categorization that has been assigned to this IP
+                update_historic_category.Category = str(key['tag'])
+                historic_categories = str(key['tag'])
+                category_count += 1
+            else:   #Otherwise we need commas and to keep what was already in there
+                update_historic_category.Category = update_historic_category.Category + " , " + str(key['tag'])
+                historic_categories = historic_categories + " , " + str(key['tag'])
+                category_count += 1 
+            session.commit()
+       
 
-already_categorized=[]
-current_categories = ""
-historic_categories = ""
-key_count = 0                                           #Declarations
-category_count = 0
-review_count = 0
-update_both_tables(4,get_current_info(0,review_count,Provided_IP,all_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
-review_count =0 
-for key in all_json['results']:    #For every entry in the json output 
-    if(key['tag'] in already_categorized):                               #If this categorization has already been reported, don't report it again
-        continue
-    else:       #Since we already have this IP in our DB,
-            
-            
-        update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
-        if category_count == 0:    #If this is the first categorization that has been assigned to this IP
-            update_historic_category.Category = str(key['tag'])
-            historic_categories = str(key['tag'])
-            category_count += 1
-        else:   #Otherwise we need commas and to keep what was already in there
-            update_historic_category.Category = update_historic_category.Category + " , " + str(key['tag'])
-            historic_categories = historic_categories + " , " + str(key['tag'])
-            category_count += 1 
-        session.commit()
-   
 
+            already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
+    print 'All Historical Categorizations: ' + historic_categories
+    print "Total Reports on this IP: " + str(all_json['count'])
+    update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
+else:
+    print 'No Reports available on this IP Address.'
 
-        already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
-print 'All Historical Categorizations: ' + historic_categories
-print "Total Reports on this IP: " + str(all_json['count'])
-update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
 if len(sys.argv[1:]) == 0:
     parser.print_help()

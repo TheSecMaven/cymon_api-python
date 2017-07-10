@@ -63,20 +63,26 @@ def check_ip_exist(Table,Provided_IP):           #This function confirms whether
             return 0
 
 def update_both_tables(column_number,input_string,Provided_IP):              #This function will update both current and historic tables for a given column
-    columns = ["IP","Location","Date","Score","Category","registrar_name","registrar_organization"]
-    columner1 = str(columns[column_number])
+    if(input_string == 0):
+        return 0
+    else:
+        columns = ["IP","Location","Date","Score","Category","registrar_name","registrar_organization"]
+        columner1 = str(columns[column_number])
     
-    input_current = session.query(IP_Current).filter(IP_Current.IP == Provided_IP).one()
-    setattr(input_current,str(literal_column(str(columner1))),str(input_string))         #Update current table with new information
-    session.commit()
+        input_current = session.query(IP_Current).filter(IP_Current.IP == Provided_IP).one()
+        setattr(input_current,str(literal_column(str(columner1))),str(input_string))         #Update current table with new information
+        session.commit()
     
-    input_historic = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
-    setattr(input_historic,str(literal_column(str(columner1))),str(input_string))   #Update historic table with new information
-    session.commit()
+        input_historic = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
+        setattr(input_historic,str(literal_column(str(columner1))),str(input_string))   #Update historic table with new information
+        session.commit()
 
 def date_parse(date_string):                          #This function parses the date that comes from the raw JSON output and puts it in a Month/Day/Year format
-    parsed_date = dateutil.parser.parse(date_string).strftime("%x")
-    return parsed_date
+    if(date_string == "none"):
+        return 0
+    else:
+        parsed_date = dateutil.parser.parse(date_string).strftime("%x")
+        return parsed_date
 
 def get_current_info(column_number,review_count,Provided_IP,all_json):             #This function pulls current information from JSON output for a handful of keys
     tags = ""
@@ -85,11 +91,14 @@ def get_current_info(column_number,review_count,Provided_IP,all_json):          
     key_count = 0
     current_info = ""
 
-    if attr == "updated":   #If the attribute we are looking for is the created date or score
+    if attr == "updated" and len(all_json['hits']) != 0:   #If the attribute we are looking for is the created date or score
         return all_json["hits"][0]['timestamp']
-    for tag in all_json['hits'][0]['tags']:
-        tags += tag + ' '
-    return tags
+    if len(all_json['hits']) != 0:
+        for tag in all_json['hits'][0]['tags']:
+            tags += tag + ' '
+        return tags
+    else:
+        return "none"
 
 
 if __name__ == "__main__":
@@ -123,7 +132,7 @@ IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
 if (options.s_ip is not "none"):    #If the -i option was used
     scanurl = options.s_ip
-    apiurl = url + "/ioc/search/ip/" + scanurl + "?startDate=" + str((datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')) + '&endDate=' + str(datetime.datetime.now().strftime('%Y-%m-%d')) + '&from=0&size=3'
+    apiurl = url + "/ioc/search/ip/" + scanurl + "?startDate=" + str((datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')) + '&endDate=' + str(datetime.datetime.now().strftime('%Y-%m-%d')) + '&from=0&size=3'
     domain_json = send_request(apiurl,scanurl,headers,output)
     if(domain_json['total'] != 0):
         IP_Location = str(domain_json["hits"][0]['location']['city']) + ',' + str(domain_json["hits"][0]['location']['country'])
