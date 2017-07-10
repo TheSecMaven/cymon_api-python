@@ -2,6 +2,43 @@
     "from": 0, 
     "hits": [
         {
+            "description": "Brand targeted: BT Group plc", 
+            "feed": "OpenPhish", 
+            "feed_id": "AVsGgHRIVjrVcoBZyoiV", 
+            "id": "0e68f0dab0a80a6d65cfbd186947cf66944f0c783c4560e6b4d583b505fcf19e", 
+            "ioc": {
+                "domain": "5gbfree.com", 
+                "hostname": "liuf.5gbfree.com", 
+                "ip": "209.90.88.140", 
+                "url": "http://liuf.5gbfree.com/cybercan/BtY/BtY/bt/"
+            }, 
+            "ipwhois": {
+                "net": {
+                    "handle": "NET-50-87-0-0-1", 
+                    "name": "UNIFIEDLAYER-NETWORK-9"
+                }, 
+                "org": {
+                    "handle": "BLUEH-2", 
+                    "name": "Unified Layer"
+                }
+            }, 
+            "link": "https://openphish.com", 
+            "location": {
+                "city": "Orem", 
+                "country": "US", 
+                "point": {
+                    "lat": 40.2968, 
+                    "lon": -111.6761
+                }
+            }, 
+            "reported_by": "cymon", 
+            "tags": [
+                "phishing"
+            ], 
+            "timestamp": "2017-07-07T12:19:15.000Z", 
+            "title": "Phishing campaign targeting BT Group plc"
+        }, 
+        {
             "description": "Brand targeted: Yahoo! Inc", 
             "feed": "OpenPhish", 
             "feed_id": "AVsGgHRIVjrVcoBZyoiV", 
@@ -53,35 +90,8 @@
             ], 
             "timestamp": "2017-06-28T22:17:00.000Z", 
             "title": "Phishing activity"
-        }, 
-        {
-            "description": "Brand targeted: Apple Inc.", 
-            "feed": "OpenPhish", 
-            "feed_id": "AVsGgHRIVjrVcoBZyoiV", 
-            "id": "7bd01c22381d058955115e17edb77127921fdd7df62df70ac358477a5556426d", 
-            "ioc": {
-                "domain": "5gbfree.com", 
-                "hostname": "www.elcamex7.5gbfree.com", 
-                "ip": "209.90.88.140", 
-                "url": "http://www.elcamex7.5gbfree.com/prince.php"
-            }, 
-            "link": "https://openphish.com", 
-            "location": {
-                "city": "Orem", 
-                "country": "US", 
-                "point": {
-                    "lat": 40.2968, 
-                    "lon": -111.6761
-                }
-            }, 
-            "reported_by": "cymon", 
-            "tags": [
-                "phishing"
-            ], 
-            "timestamp": "2017-06-28T21:27:37.000Z", 
-            "title": "Phishing campaign targeting Apple Inc."
         }
     ], 
     "size": 3, 
-    "total": 6
+    "total": 133
 }
