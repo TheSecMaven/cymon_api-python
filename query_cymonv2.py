@@ -26,7 +26,7 @@ config = ConfigParser()
 config.read('config.ini')
 token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
 proxies = config.get('DEFAULT','Proxies')
-authuser = str(raw_input('What is the username for Proxy Auth: '))
+authuser = str(input('What is the username for Proxy Auth: '))
 authpassword = getpass.getpass('Password for Proxy:')
 auth = authuser + ":" + authpassword
 proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
@@ -37,7 +37,7 @@ output = open('IPs/' + sys.argv[2]+".json","w")    #Output all downloaded json t
 
 whois = ""
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
-    print apiurl
+    print (apiurl)
     response = requests.get(apiurl, params='',proxies=proxies, headers=headers,timeout=20)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
@@ -49,7 +49,7 @@ def get_md5(filename):     #This function returns the MD5 hash of a provided fil
         md5 = hashlib.md5((f).read()).hexdigest()
         return md5
     except e:
-        print str(e)
+        print (str(e))
 
 def check_ip_exist(Table,Provided_IP):           #This function confirms whether or not an entry already exists. If so, it returns the entry 
     while(1):
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     headers ={'Content-Type': 'application/json'}
     url = "https://api.cymon.io/v2/"
     apiurl = url + "/v2/auth/login"
-    cymon_user = str(raw_input('What is the username for Cymon v2: '))
+    cymon_user = str(input('What is the username for Cymon v2: '))
     cymon_password = getpass.getpass('Password for Cymon Account:')
     post = {"username":cymon_user,"password":cymon_password}
 
@@ -131,60 +131,59 @@ IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
 
 if (options.s_ip is not "none"):    #If the -i option was used
-    scanurl = options.s_ip
-    apiurl = url + "/ioc/search/ip/" + scanurl + "?startDate=" + str((datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')) + '&endDate=' + str(datetime.datetime.now().strftime('%Y-%m-%d')) + '&from=0&size=3'
-    domain_json = send_request(apiurl,scanurl,headers,output)
-    if(domain_json['total'] != 0):
-        IP_Location = str(domain_json["hits"][0]['location']['city']) + ',' + str(domain_json["hits"][0]['location']['country'])
-    else:
-        IP_Location = "Unknown"
-    print domain_json
-         #Used to hold categories of an IP or URL that have already been listed in the report.
-    
-    update_both_tables(1,IP_Location,Provided_IP)
+	scanurl = options.s_ip
+	apiurl = url + "/ioc/search/ip/" + scanurl + "?startDate=" + str((datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')) + '&endDate=' + str(datetime.datetime.now().strftime('%Y-%m-%d')) + '&from=0&size=3'
+	domain_json = send_request(apiurl,scanurl,headers,output)
+	if('errorMessage' in domain_json):
+		print ("No IOCs Found for this IP. Please Try Again")
+	else: 
+		if(domain_json['total'] != 0):
+		    IP_Location = str(domain_json["hits"][0]['location']['city']) + ',' + str(domain_json["hits"][0]['location']['country'])
+		else:
+		    IP_Location = "Unknown"
+		print (domain_json)
+		     #Used to hold categories of an IP or URL that have already been listed in the report.
+
+		update_both_tables(1,IP_Location,Provided_IP)
 
 
-    already_categorized=[]
-    current_categories = ""
-    key_count = 0                                           #Declarations
-    category_count = 0
-    review_count = 0
-    update_both_tables(4,get_current_info(0,review_count,Provided_IP,domain_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
-    update_both_tables(1,IP_Location,Provided_IP)
-    review_count =0 
-    for key in domain_json['hits']:    #For every entry in the json output 
-        for tag in key['tags']:
-            if(tag in already_categorized):                               #If this categorization has already been reported, don't report it again
-                continue
-            else:       #Since we already have this IP in our DB,
-                    
-                    
-                update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
-                if category_count == 0:    #If this is the first categorization that has been assigned to this IP
-                    update_historic_category.Category = str(tag)
-                    category_count += 1
-                else:   #Otherwise we need commas and to keep what was already in there
-                    update_historic_category.Category = update_historic_category.Category + " , " + str(tag)
-                    category_count += 1 
-                session.commit()
+		already_categorized=[]
+		current_categories = ""
+		key_count = 0                                           #Declarations
+		category_count = 0
+		review_count = 0
+		update_both_tables(4,get_current_info(0,review_count,Provided_IP,domain_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
+		update_both_tables(1,IP_Location,Provided_IP)
+		review_count =0 
+		for key in domain_json['hits']:    #For every entry in the json output 
+			for tag in key['tags']:
+				if(tag in already_categorized):                               #If this categorization has already been reported, don't report it again
+					continue
+				else:       #Since we already have this IP in our DB,
+					update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
+					if category_count == 0:    #If this is the first categorization that has been assigned to this IP
+						update_historic_category.Category = str(tag)
+						category_count += 1
+					else:   #Otherwise we need commas and to keep what was already in there
+						update_historic_category.Category = update_historic_category.Category + " , " + str(tag)
+						category_count += 1 
+						session.commit()
+					already_categorized.append(tag)   #Add the category to the list of already printed categories so we don't repeat
 
+		update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,domain_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
 
-                already_categorized.append(tag)   #Add the category to the list of already printed categories so we don't repeat
+		if (options.s_domain is not "none"):    #If the -i option was used
+			scanurl = options.s_domain
+			apiurl = url + "/ioc/search/domain/" + scanurl + "?startDate=" + str(datetime.datetime.today() - datetime.timedelta(days=7)) + '&endDate=' + str(datetime.datetime.today()) + '&from=0&size=3'
+			domain_json = send_request(apiurl,scanurl,headers,output)
+		if(domain_json['total'] != 0):
+			IP_Location = str(domain_json["hits"]['location']['city']) + ',' + str(domain_json["hits"]['location']['country'])
+		else:
+			IP_Location = "Unknown"
 
-    update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,domain_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
+		print (domain_json)
+		print (IP_Location)
 
-if (options.s_domain is not "none"):    #If the -i option was used
-    scanurl = options.s_domain
-    apiurl = url + "/ioc/search/domain/" + scanurl + "?startDate=" + str(datetime.datetime.today() - datetime.timedelta(days=7)) + '&endDate=' + str(datetime.datetime.today()) + '&from=0&size=3'
-    domain_json = send_request(apiurl,scanurl,headers,output)
-    if(domain_json['total'] != 0):
-        IP_Location = str(domain_json["hits"]['location']['city']) + ',' + str(domain_json["hits"]['location']['country'])
-    else:
-        IP_Location = "Unknown"
-
-    print domain_json
-    print IP_Location
-
-    
+	
 if len(sys.argv[1:]) == 0:
     parser.print_help()
