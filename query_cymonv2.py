@@ -112,10 +112,11 @@ if __name__ == "__main__":
 
     jwt = requests.post('https://api.cymon.io/v2/auth/login',proxies=proxies,data=json.dumps(post),headers=headers,verify=True)
     mytoken = jwt.json()
-    jwt = mytoken['jwt']
+    jwt = mytoken.get('jwt')
 
+    data = base64.b64decode(jwt('.')[1] + "===")
 
-    headers = {'Authorization': token}
+    headers = {'Authorization':'mkkeffeler ' + data}
     url = "https://api.cymon.io/v2/"
 
 
@@ -132,11 +133,12 @@ IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
 if (options.s_ip is not "none"):    #If the -i option was used
 	scanurl = options.s_ip
-	apiurl = url + "/ioc/search/ip/" + scanurl + "?startDate=" + str((datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')) + '&endDate=' + str(datetime.datetime.now().strftime('%Y-%m-%d')) + '&from=0&size=3'
+	apiurl = url + "ioc/query/ipv4/" + scanurl + "?startDate=" + str((datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')) + '&endDate=' + str(datetime.datetime.now().strftime('%Y-%m-%d')) + '&from=0&size=3'
 	domain_json = send_request(apiurl,scanurl,headers,output)
 	if('errorMessage' in domain_json):
 		print ("No IOCs Found for this IP. Please Try Again")
 	else: 
+		print(domain_json) 
 		if(domain_json['total'] != 0):
 		    IP_Location = str(domain_json["hits"][0]['location']['city']) + ',' + str(domain_json["hits"][0]['location']['country'])
 		else:
@@ -172,17 +174,17 @@ if (options.s_ip is not "none"):    #If the -i option was used
 
 		update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,domain_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
 
-		if (options.s_domain is not "none"):    #If the -i option was used
-			scanurl = options.s_domain
-			apiurl = url + "/ioc/search/domain/" + scanurl + "?startDate=" + str(datetime.datetime.today() - datetime.timedelta(days=7)) + '&endDate=' + str(datetime.datetime.today()) + '&from=0&size=3'
-			domain_json = send_request(apiurl,scanurl,headers,output)
-		if(domain_json['total'] != 0):
-			IP_Location = str(domain_json["hits"]['location']['city']) + ',' + str(domain_json["hits"]['location']['country'])
-		else:
-			IP_Location = "Unknown"
+if (options.s_domain is not "none"):    #If the -i option was used
+	scanurl = options.s_domain
+	apiurl = url + "ioc/search/domain/" + scanurl + "?startDate=" + str((datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')) + '&endDate=' + str(datetime.datetime.now().strftime('%Y-%m-%d')) + '&from=0&size=10'
+	domain_json = send_request(apiurl,scanurl,headers,output)
+	if(domain_json['total'] != 0):
+		IP_Location = str(domain_json["hits"]['location']['city']) + ',' + str(domain_json["hits"]['location']['country'])
+	else:
+		IP_Location = "Unknown"
 
-		print (domain_json)
-		print (IP_Location)
+	print (domain_json)
+	print (IP_Location)
 
 	
 if len(sys.argv[1:]) == 0:

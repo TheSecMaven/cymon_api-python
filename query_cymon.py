@@ -123,6 +123,12 @@ IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP
 IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
 if (options.s_ip is not "none"):    #If the -i option was used
+    print ("Standard Output: ")
+    print ('EVENT ID: ' + Event_ID)
+    
+    if(options.s_ip == ""):
+        print ("Domain Name: Unknown")
+        exit()
     scanurl = options.s_ip
     apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/events/"
     all_json = send_request(apiurl, scanurl, headers,output)
@@ -133,7 +139,6 @@ if(domain_json['count'] != 0):
 else:
     IP_Location = "Unknown"
      
-print ('EVENT ID: ' + Event_ID)
 #Used to hold categories of an IP or URL that have already been listed in the report.
 update_both_tables(1,IP_Location,Provided_IP)
 if(domain_json['count']>0):
