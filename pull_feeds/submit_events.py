@@ -17,7 +17,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import types
-from build_database import IP_Current, IP_History
 from sqlalchemy import exists
 import dateutil.parser
 from sqlalchemy.sql.expression import literal_column
@@ -33,6 +32,7 @@ Token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and
 proxies = config.get('DEFAULT','Proxies')
 
 filename = sys.argv[1]
+print (filename)
 
 
 if(proxies == ""):
@@ -44,8 +44,13 @@ else:
     auth = authuser + ":" + authpassword
     proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
 
-
-
+def which_field(category):
+    if(category == 'recent_domains'):
+        return 'name'
+    if(category == 'recent_ips'):
+        return 'addr'
+    if(category == 'recent_urls'):
+        return 'location'
 
 engine = create_engine('sqlite:///IP_Report.db')
 DBSession = sessionmaker(bind = engine)
@@ -95,12 +100,13 @@ if __name__ == "__main__":
         'warning': 4, 'notice': 5, 'info': 6, 'debug': 7
 }  
 
-    all_json = json.loads(filename)
+    all_json = json.load(open(filename,'r'))
 
     for category in event_types:
         feed_data = all_json['data'][category]
+        print (category)
         for entry in feed_data:
-            event = generate_cef_event(category,entry['name'],entry['updated')
+            event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
             syslog(event)
  
     print ("All Events Pushed")

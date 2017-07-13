@@ -13,7 +13,6 @@ import hashlib
 import base64
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from build_database import IP_Current, IP_History
 from sqlalchemy import exists
 import dateutil.parser
 from sqlalchemy.sql.expression import literal_column
@@ -37,9 +36,10 @@ else:
 
 filename = "recent_feed-" + str(datetime.datetime.now().strftime('%FT%TZ')) + ".json"
 output = open(filename,"w")
-link = "https://cymon.io/api/dashboard/v2/recent-objects/"
+link = "https://cymon.io/api/dashboard/v1/recent-objects/"
 response1 = ""
-response = requests.get(link,proxies=proxies,headers = {'Authorization': "mkkeffeler Keff4450",'content-type':"application/json"})
+if(proxies == ""):
+    response = requests.get(link,headers = {'Authorization': token,'content-type':"application/json"})
 all_json = response.json()
 output.write(json.dumps(all_json,indent=4,sort_keys=True))
 os.system('python3 submit_events.py ' + filename)
