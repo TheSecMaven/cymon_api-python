@@ -20,6 +20,29 @@ from sqlalchemy.sql.expression import literal_column
 from configparser import ConfigParser
 import urllib
 import getpass
+Event_ID = str(sys.argv[1])
+my_ip = "None"
+def optional_arg(arg_default,Event_ID):
+    def func(option,opt_str,value,parser):
+        if parser.rargs == []:
+            print ("Standard Output:")
+            print ("EVENT ID: " + Event_ID)
+            print ("Domain Name: Unknown")
+            exit()
+        else:
+            
+            global my_ip
+            my_ip = parser.rargs[0]
+    return func
+parser = OptionParser()
+
+parser.add_option("-i", "--ip",action='callback', dest="s_ip" , default="none",
+                      help="ip to be checked on cymon",callback=optional_arg('empty',Event_ID), metavar="ipaddress")                                           #Use this option to check an IP address
+parser.add_option("-u", "--user", dest="user_name" , default=None,
+                      help="Proxy Auth User Name", metavar="user")
+parser.add_option("-p", "--password", dest="password", default=None,
+                      help="Proxy Auth Password", metavar="passss")
+(options, args) = parser.parse_args()
 
 config = ConfigParser()
 config.read('config.ini')
@@ -34,16 +57,17 @@ else:
     auth = authuser + ":" + authpassword
     proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
 
-engine = create_engine('sqlite:///pull_feeds/IP_Report.db')   #Setup the Database
+engine = create_engine('sqlite:///IP_Report.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
 session = DBSession()           #Must be able to query database
-output = open("IPs/" + sys.argv[3]+"v1.json","w")    #Output all downloaded json to a file
+output = open("IPs/" + 'latest' +"v1.json","w")    #Output all downloaded json to a file
 
 whois = ""
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
     if(proxies == ""):
         response = requests.get(apiurl, params='', headers=headers,timeout=20)
     else:
+        
         response = requests.get(apiurl, proxies=proxies, params='', headers=headers,timeout=20)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
@@ -108,28 +132,20 @@ if __name__ == "__main__":
     headers = {'Authorization': token}
     url = "https://cymon.io"
 
-
-    parser = OptionParser()
-    parser.add_option("-i", "--ip", dest="s_ip" , default="none",
-                      help="ip to be checked on cymon", metavar="ipaddress")                                           #Use this option to check an IP address
-    parser.add_option("-u", "--user", dest="user_name" , default=None,
-                      help="Proxy Auth User Name", metavar="user")
-    parser.add_option("-p", "--password", dest="password", default=None,
-                      help="Proxy Auth Password", metavar="passss")
-
 (options, args) = parser.parse_args()
-Provided_IP = options.s_ip
-IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
-IP_exists_history = check_ip_exist(IP_History,Provided_IP)
+Provided_IP = my_ip
+print Provided_IP
+#IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
+#IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
-if (options.s_ip is not "none"):    #If the -i option was used
+if (my_ip is not "None"):    #If the -i option was used
     print ("Standard Output: ")
     print ('EVENT ID: ' + Event_ID)
     
-    if(options.s_ip == ""):
+    if(my_ip == ""):
         print ("Domain Name: Unknown")
         exit()
-    scanurl = options.s_ip
+    scanurl = my_ip
     apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/events/"
     all_json = send_request(apiurl, scanurl, headers,output)
     apiurl = url + '/api/nexus/v1/ip/' + scanurl + '/domains/'
@@ -140,7 +156,7 @@ else:
     IP_Location = "Unknown"
      
 #Used to hold categories of an IP or URL that have already been listed in the report.
-update_both_tables(1,IP_Location,Provided_IP)
+#update_both_tables(1,IP_Location,Provided_IP)
 if(domain_json['count']>0):
     already_categorized=[]
     current_categories = ""
@@ -148,7 +164,7 @@ if(domain_json['count']>0):
     key_count = 0                                           #Declarations
     category_count = 0
     review_count = 0
-    update_both_tables(4,get_current_info(0,review_count,Provided_IP,all_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
+    #update_both_tables(4,get_current_info(0,review_count,Provided_IP,all_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
     review_count =0 
     for key in all_json['results']:    #For every entry in the json output 
         if(key['tag'] in already_categorized):                               #If this categorization has already been reported, don't report it again
@@ -156,13 +172,13 @@ if(domain_json['count']>0):
         else:       #Since we already have this IP in our DB,
                 
                 
-            update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
+            #update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
             if category_count == 0:    #If this is the first categorization that has been assigned to this IP
-                update_historic_category.Category = str(key['tag'])
+                #update_historic_category.Category = str(key['tag'])
                 historic_categories = str(key['tag'])
                 category_count += 1
             else:   #Otherwise we need commas and to keep what was already in there
-                update_historic_category.Category = update_historic_category.Category + " , " + str(key['tag'])
+                #update_historic_category.Category = update_historic_category.Category + " , " + str(key['tag'])
                 historic_categories = historic_categories + " , " + str(key['tag'])
                 category_count += 1 
             session.commit()
@@ -172,7 +188,7 @@ if(domain_json['count']>0):
             already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
     print ('All Historical Categorizations: ' + historic_categories)
     print ("Total Reports on this IP: " + str(all_json['count']))
-    update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
+    #update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
 else:
    print ('No reports found for this IP')
 if len(sys.argv[1:]) == 0:
