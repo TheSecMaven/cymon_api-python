@@ -26,7 +26,7 @@ def which_field(category):
         return '|request='
 
 def date_parse(date_string):                          #This function parses the date that comes from the raw JSON output and puts it in a Month/Day/Year format
-    parsed_date = dateutil.parser.parse(date_string).strftime("%m-%d-%Y %H:%M:%S")
+    parsed_date = dateutil.parser.parse(date_string).strftime("%b %d %Y %H:%M:%S")
     return parsed_date
 
 
