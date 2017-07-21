@@ -24,7 +24,7 @@ from cef_event import generate_cef_event
 import os
 from configparser import ConfigParser
 import getpass
-
+import codecs
 config = ConfigParser()
 config.read('../config.ini')
 HOST= config.get('DEFAULT', 'HOST')                          #Get Hostname and Port to send CEF event to from Config.INI file

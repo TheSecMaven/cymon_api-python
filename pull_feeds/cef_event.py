@@ -8,7 +8,26 @@ __author__='mkkeffeler'
 #A CEF event will then be generated and this can be fed to SIEM software such as HP Arcsight.
 import datetime
 import dateutil.parser
-
+import requests
+import sys
+import json
+from optparse import OptionParser
+import hashlib
+import base64
+import socket
+from sqlalchemy import Column, Text, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import types
+from sqlalchemy import exists
+import dateutil.parser
+from sqlalchemy.sql.expression import literal_column
+import os
+from configparser import ConfigParser
+import getpass
+import codecs
 def dynamic_event_names(category):
     if(category == 'recent_domains'):
         return 'Known Malicious Domain'
@@ -28,12 +47,12 @@ def which_field(category):
 def date_parse(date_string):                          #This function parses the date that comes from the raw JSON output and puts it in a Month/Day/Year format
     parsed_date = dateutil.parser.parse(date_string).strftime("%b %d %Y %H:%M:%S")
     return parsed_date
-
+    f = codecs.open('test', encoding='utf-8', mode='w+')
 
 
 def generate_cef_event(category,to_be_blacklisted,updated_time):
     message = ""
     event_name = str(dynamic_event_names(category))
-    message = "Blacklisted Item: " + str(to_be_blacklisted) + " Updated: " + str(date_parse(updated_time)) 
-    cef = 'CEF:0|Cymon|Cymon API|1.0|100|' + event_name + '|1' + which_field(category) + str(to_be_blacklisted)+ ' end='+ str(date_parse(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))) +' msg=' + message
+    message = "Blacklisted Item: " + str(codecs.decode(to_be_blacklisted,'unicode_escape').replace('=', '\\=')) + " Updated: " + str(date_parse(updated_time)) 
+    cef = 'CEF:0|Cymon|Cymon API|1.0|100|' + event_name + '|1' + which_field(category) + str(codecs.decode(to_be_blacklisted,'unicode_escape').replace('=', '\\=')) + ' end='+ str(date_parse(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))) +' msg=' + message
     return cef
