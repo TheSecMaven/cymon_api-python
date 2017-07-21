@@ -35,5 +35,5 @@ def generate_cef_event(category,to_be_blacklisted,updated_time):
     message = ""
     event_name = str(dynamic_event_names(category))
     message = "Blacklisted Item: " + str(to_be_blacklisted) + " Updated: " + str(date_parse(updated_time)) 
-    cef = 'CEF:0|Cymon|Cymon API|1.0|100|' + event_name + '|1' + which_field(category) + str(to_be_blacklisted)+ ' end='+ str(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S:%fZ')) +' msg=' + message
+    cef = 'CEF:0|Cymon|Cymon API|1.0|100|' + event_name + '|1' + which_field(category) + str(to_be_blacklisted)+ ' end='+ str(date_parse(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))) +' msg=' + message
     return cef
