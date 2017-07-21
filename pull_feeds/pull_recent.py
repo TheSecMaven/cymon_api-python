@@ -40,6 +40,8 @@ link = "https://cymon.io/api/dashboard/v1/recent-objects/"
 response1 = ""
 if(proxies == ""):
     response = requests.get(link,headers = {'Authorization': token,'content-type':"application/json"})
+else:
+    response = requests.get(link,headers = {'Authorization': token,'content-type':"application/json"}, proxies=proxies)
 all_json = response.json()
 output.write(json.dumps(all_json,indent=4,sort_keys=True))
 os.system('python3 submit_events.py ' + filename)

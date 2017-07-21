@@ -23,6 +23,7 @@ from sqlalchemy.sql.expression import literal_column
 from cef_event import generate_cef_event
 import os
 from configparser import ConfigParser
+import getpass
 
 config = ConfigParser()
 config.read('../config.ini')
@@ -61,7 +62,7 @@ CONFIG = {}
 def syslog(message, level=5, facility=5, host=HOST, port=int(PORT)):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         data = '<%d>%s' % (level + facility*8, message)
-        sock.sendto(data, (host, (port)))
+        sock.sendto(data.encode(), (host, (port)))
         sock.close()
 
 CONFIG['FACILITY'] = {
@@ -108,5 +109,6 @@ if __name__ == "__main__":
         for entry in feed_data:
             event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
             syslog(event)
+            print(event)
  
     print ("All Events Pushed")
