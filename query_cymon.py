@@ -52,8 +52,8 @@ if(proxies == ""):
     auth = ""
 else:
     #TODO need to change from hardcoded arg indexes
-    authuser = str(input('What is the username for Proxy Auth: '))
-    authpassword =getpass.getpass('Password for Proxy:')
+    authuser = options.user_name #str(input('What is the username for Proxy Auth: '))
+    authpassword = options.password #getpass.getpass('Password for Proxy:')
     auth = authuser + ":" + authpassword
     proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
 (options, args) = parser.parse_args()
 Provided_IP = my_ip
-print Provided_IP
+print (Provided_IP)
 #IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
 #IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
