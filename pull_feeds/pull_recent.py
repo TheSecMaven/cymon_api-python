@@ -1,7 +1,9 @@
+#!/az/arcsight/counteract_scripts/env/bin/python
 #Miclain Keffeler
 #6/8/2017
 #This script pulls the most recent events/malware/URLs that have been submitted as suspicious or malicious from cymon.io. Eventually this information will be automatically parsed and stored so that if a new malware tried to enter a network it could be searched quickly in this up-to-date table and potentially stopped from entering. 
 import os
+import sys
 import requests
 import json
 import datetime
@@ -21,7 +23,7 @@ import urllib
 import getpass
 
 config = ConfigParser()
-config.read('../config.ini')
+config.read(os.path.join(os.path.dirname(__file__), '../config.ini'))
 token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
 proxies = config.get('DEFAULT','Proxies')
 if(proxies == ""):
