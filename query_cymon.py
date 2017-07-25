@@ -164,13 +164,16 @@ if(domain_json['count']>0):
     category_count = 0
     review_count = 0
     #update_both_tables(4,get_current_info(0,review_count,Provided_IP,all_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
-    review_count =0 
+    review_count =0
+    domain_flag=0
+    domain_name = ""
     for key in all_json['results']:    #For every entry in the json output 
         if(key['tag'] in already_categorized):                               #If this categorization has already been reported, don't report it again
             continue
+
         else:       #Since we already have this IP in our DB,
                 
-                
+             
             #update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
             if category_count == 0:    #If this is the first categorization that has been assigned to this IP
                 #update_historic_category.Category = str(key['tag'])
@@ -181,10 +184,10 @@ if(domain_json['count']>0):
                 historic_categories = historic_categories + " , " + str(key['tag'])
                 category_count += 1 
             session.commit()
-       
-
 
             already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
+    print ('Domain Name: ' + IP_Location)
+
     print ('All Historical Categorizations: ' + historic_categories)
     print ("Total Reports on this IP: " + str(all_json['count']))
     #update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
