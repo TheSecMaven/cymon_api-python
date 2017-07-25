@@ -26,7 +26,6 @@ my_ip = "None"
 def optional_arg(arg_default,Event_ID):
     def func(option,opt_str,value,parser):
         if parser.rargs == []:
-            print ("Standard Output: ") 
             print ("EVENT ID: " + Event_ID)
             print ("Domain Name: Unknown")
             exit()
@@ -140,7 +139,6 @@ Provided_IP = my_ip
 #IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
 if (my_ip is not "None"):    #If the -i option was used
-    print ("Standard Output: ")
     print ('EVENT ID: ' + Event_ID)
     
     if(my_ip == ""):
