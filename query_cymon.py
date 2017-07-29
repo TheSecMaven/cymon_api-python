@@ -1,4 +1,3 @@
-#!/az/arcsight/counteract_scripts/env/bin/python
 #Miclain Keffeler
 #6/8/2017 
 import requests
