@@ -44,7 +44,6 @@ def get_key(key_num):
     return my_token
 def optional_arg(arg_default,Event_ID):
     def func(option,opt_str,value,parser):
-        print parser.rargs
         if parser.rargs == []:
             print ("Hostname Results: None")
         else:
@@ -52,9 +51,14 @@ def optional_arg(arg_default,Event_ID):
             my_domain = parser.rargs[0]
     return func
 
+def confirm_validity_of_token(token):
+    if 'Token' not in token:
+        print ("Event ID: " + Event_ID)
+        print ("Domain Name: Unknown")
+        print ("Token is not valid. Please check the variation of token you are using")
+        exit()
 def optional_arg2(arg_default,Event_ID):
     def func(option,opt_str,value,parser):
-        print "MYARGS:" + str(parser.rargs)
         if len(parser.rargs) ==  0:
             print ("Event ID: " + Event_ID)
             print ("Domain Name: Unknown")
@@ -70,6 +74,8 @@ parser.add_option("-i", "--ip",action='callback', dest="s_ip" , default="none",
                       help="ip to be checked on cymon",callback=optional_arg2('empty',Event_ID), metavar="ipaddress")                                           #Use this option to check an IP address
 parser.add_option("-t", "--hostname",action='callback', dest="s_hostname" , default="none",
                       help="hostname to be checked on cymon",callback=optional_arg('empty',Event_ID), metavar="hostname") 
+parser.add_option("-1", "--1key",action='store_true',dest="is1key" , default=False,
+                      help="If specified, this will set the token used for authentication to come from the config.ini file",metavar="hostname") 
 parser.add_option("-u", "--user", dest="user_name" , default=None,
                       help="Proxy Auth User Name", metavar="user")
 parser.add_option("-p", "--password", dest="password", default=None,
@@ -78,7 +84,11 @@ parser.add_option("-p", "--password", dest="password", default=None,
 
 config = ConfigParser()
 config.read('config.ini')
-token = get_key(key_reader())      
+if(options.is1key == True):
+    token = config.get('DEFAULT','TOKEN')
+else:
+    token = get_key(key_reader())     
+confirm_validity_of_token(token) 
 key_writer(int(key_reader()) + 1)           #Get API Key and Password from Config.INI file
 proxies = config.get('DEFAULT','Proxies')
 if(proxies == ""):
