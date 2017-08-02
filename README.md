@@ -1,6 +1,9 @@
 
 # Cymon API
 Cymon is the largest tracker and aggregator of security reports. This repository aims to easily utilize and incorporate the tools they provide within existing SIEM software as well as Information Security Departments.
+# Setup
+Simple enough,<br>
+`pip install -r requirements.txt` and you are all set. <br>
 
 # How to Use the Pull_Feeds Subdirectory
 ## pull_recent.py Usage
