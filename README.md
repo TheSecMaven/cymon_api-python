@@ -16,7 +16,7 @@ This is used to query the cymon api and pull all relevant information regarding 
 ### Notes
 The script can handle when an IP address is not supplied. For example, the -i option can be used, but if it does not have an IP address following it then the script will return none for results. 
 <br> 
-###Optional Proxy Auth and Token usage in query_cymon.py
+### Optional Proxy Auth and Token usage in query_cymon.py
 If needing to authenticate to proxy, simply add the proxy settings to config.ini file and script will use the credentials provided in -u and -p options to authenticate with proxy. -u <USERNAME> -p <PASSWORD><br><br>
 If you want to use the Token specified in the config.ini file, rather than iterate over 5 keys specified in .key1->5 evenly. It decides which key to use based on the number specified in .keynum, which is changed automatically every call to query_cymon.py. Please provide the -1 or --1key flags in your call to query_cymon.py to make the token used come strictly from config.ini
 ### Usage
