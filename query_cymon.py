@@ -20,23 +20,56 @@ from sqlalchemy.sql.expression import literal_column
 from configparser import ConfigParser
 import urllib
 import getpass
+
 Event_ID = str(sys.argv[1])
 my_ip = "None"
+def key_reader():
+    my_num = 0
+    with open('.keynum') as f:
+        lines = f.readlines()
+        for line in lines:
+            my_num = line[0]
+    return my_num
+
+def key_writer(my_key):
+    with open('.keynum','w') as f:
+        f.write(str(my_key))
+        f.close()
+def get_key(key_num):
+    my_token = ""
+    with open('.key' + key_num) as f:
+        lines = f.readlines()
+        for line in lines:
+            my_token = line.strip()
+    return my_token
 def optional_arg(arg_default,Event_ID):
     def func(option,opt_str,value,parser):
+        print parser.rargs
         if parser.rargs == []:
+            print ("Hostname Results: None")
+        else:
+            global my_domain
+            my_domain = parser.rargs[0]
+    return func
+
+def optional_arg2(arg_default,Event_ID):
+    def func(option,opt_str,value,parser):
+        print "MYARGS:" + str(parser.rargs)
+        if len(parser.rargs) ==  0:
             print ("Event ID: " + Event_ID)
             print ("Domain Name: Unknown")
             exit()
         else:
-            
             global my_ip
             my_ip = parser.rargs[0]
     return func
+
 parser = OptionParser()
 
 parser.add_option("-i", "--ip",action='callback', dest="s_ip" , default="none",
-                      help="ip to be checked on cymon",callback=optional_arg('empty',Event_ID), metavar="ipaddress")                                           #Use this option to check an IP address
+                      help="ip to be checked on cymon",callback=optional_arg2('empty',Event_ID), metavar="ipaddress")                                           #Use this option to check an IP address
+parser.add_option("-t", "--hostname",action='callback', dest="s_hostname" , default="none",
+                      help="hostname to be checked on cymon",callback=optional_arg('empty',Event_ID), metavar="hostname") 
 parser.add_option("-u", "--user", dest="user_name" , default=None,
                       help="Proxy Auth User Name", metavar="user")
 parser.add_option("-p", "--password", dest="password", default=None,
@@ -45,7 +78,8 @@ parser.add_option("-p", "--password", dest="password", default=None,
 
 config = ConfigParser()
 config.read('config.ini')
-token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
+token = get_key(key_reader())      
+key_writer(int(key_reader()) + 1)           #Get API Key and Password from Config.INI file
 proxies = config.get('DEFAULT','Proxies')
 if(proxies == ""):
     auth = ""
@@ -137,7 +171,7 @@ Provided_IP = my_ip
 #IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
 #IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
-if (my_ip is not "None"):    #If the -i option was used
+if (my_ip is not "None"):   #If the -i option was used
     print ('Event ID: ' + Event_ID)
 
     
@@ -145,15 +179,18 @@ if (my_ip is not "None"):    #If the -i option was used
         print ("Domain Name: Unknown")
         exit()
     scanurl = my_ip
+    #domain_name = my_domain
     apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/events/"
     all_json = send_request(apiurl, scanurl, headers,output)
     apiurl = url + '/api/nexus/v1/ip/' + scanurl + '/domains/'
     domain_json = send_request(apiurl,scanurl,headers,output)
-if(domain_json['count'] != 0):
-    IP_Location = domain_json["results"][0]['name']
-else:
-    IP_Location = "Unknown"
-     
+    #apiurl = url + '/api/nexus/v1/domain/' + domain_name
+    #domain_search = send_request(apiurl,scanurl,headers,output)
+    #json.dump(domain_search,open('test.json','w'))
+    if(domain_json['count'] != 0):
+        IP_Location = domain_json["results"][0]['name']
+    else:
+        IP_Location = "Unknown"
 #Used to hold categories of an IP or URL that have already been listed in the report.
 #update_both_tables(1,IP_Location,Provided_IP)
 if(domain_json['count']>0):
