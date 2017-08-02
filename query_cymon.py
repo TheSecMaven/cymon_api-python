@@ -33,8 +33,12 @@ def key_reader():
 
 def key_writer(my_key):
     with open('.keynum','w') as f:
-        f.write(str(my_key))
+        if(my_key == 6):
+            f.write('1')
+        else:
+            f.write(str(my_key))
         f.close()
+
 def get_key(key_num):
     my_token = ""
     with open('.key' + key_num) as f:
@@ -56,6 +60,7 @@ def confirm_validity_of_token(token):
         print ("Event ID: " + Event_ID)
         print ("Domain Name: Unknown")
         print ("Token is not valid. Please check the variation of token you are using")
+        key_writer(int(key_reader())+1)
         exit()
 def optional_arg2(arg_default,Event_ID):
     def func(option,opt_str,value,parser):
