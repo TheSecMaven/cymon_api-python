@@ -26,9 +26,9 @@ Event_ID = str(sys.argv[1])     #Event ID being passed in same placea
 my_ip = "None"   #For Global IP address 
 
 def key_reader():
-'''
+    '''
 Reads the .keynum file to determine which key is next to be used in list of 5 keys 
-'''
+    '''
     my_num = 0
     with open('.keynum') as f:
         lines = f.readlines()
@@ -37,9 +37,9 @@ Reads the .keynum file to determine which key is next to be used in list of 5 ke
     return my_num
 
 def key_writer(my_key):
-'''
+    '''
 Writes the newest key number to be used in the next run of this script
-'''
+    '''
     with open('.keynum','w') as f:
         if(my_key == 6):
             f.write('1')
@@ -48,9 +48,9 @@ Writes the newest key number to be used in the next run of this script
         f.close()
 
 def get_key(key_num):
-'''
+    '''
 Used to open and pull the actual token used to authenticate with Cymon
-'''
+    '''
     my_token = ""
     with open('.key' + key_num) as f:
         lines = f.readlines()
@@ -59,9 +59,9 @@ Used to open and pull the actual token used to authenticate with Cymon
     return my_token
 def optional_arg(arg_default,Event_ID):
 ##TODO Manage both an optional hostname and IP address without erroring out
-'''
+    '''
 Gets called as a callback action when -h option (hostname) is used. Will return 1 of 2 things based on the presence of a hostname
-'''
+    '''
     def func(option,opt_str,value,parser):
         if parser.rargs == []:
             print ("Hostname Results: None")
@@ -71,9 +71,9 @@ Gets called as a callback action when -h option (hostname) is used. Will return 
     return func
 
 def confirm_validity_of_token(token):
-'''
+    '''
 Confirms that a token was correctly provided and fits general format
-'''
+    '''
     if 'Token' not in token:
         print ("Event ID: " + Event_ID)
         print ("Domain Name: Unknown")
@@ -82,9 +82,9 @@ Confirms that a token was correctly provided and fits general format
         exit()
 
 def optional_arg2(arg_default,Event_ID):
-'''
+    '''
 Confirms the presence or lack of an IP address in -i option. 
-'''
+    '''
     def func(option,opt_str,value,parser):
         if len(parser.rargs) ==  0:
             print ("Event ID: " + Event_ID)
@@ -164,7 +164,7 @@ parser = OptionParser()
 
 parser.add_option("-i", "--ip",action='callback', dest="s_ip" , default="none",
                       help="ip to be checked on cymon",callback=optional_arg2('empty',Event_ID), metavar="ipaddress")                                           #Use this option to check an IP address
-parser.add_option("-h", "--hostname",action='callback', dest="s_hostname" , default="none",                                                   #-h still under development
+parser.add_option("-t", "--hostname",action='callback', dest="s_hostname" , default="none",                                                   #-h still under development
                       help="hostname to be checked on cymon",callback=optional_arg('empty',Event_ID), metavar="hostname") 
 parser.add_option("-1", "--1key",action='store_true',dest="is1key" , default=False,
                       help="If specified, this will set the token used for authentication to come from the config.ini file",metavar="hostname") #Used to specify how the script pulls keys
