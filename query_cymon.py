@@ -14,19 +14,20 @@ import hashlib
 import base64
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from build_database import IP_Current, IP_History
+#from build_database import IP_Current, IP_History
 from sqlalchemy import exists
 import dateutil.parser
 from sqlalchemy.sql.expression import literal_column
 from configparser import ConfigParser
 import urllib
 import getpass
+import os
 Event_ID = str(sys.argv[1])
 my_ip = "None"
 def optional_arg(arg_default,Event_ID):
     def func(option,opt_str,value,parser):
         if parser.rargs == []:
-            print ("Event ID: " + Event_ID)
+#            print ("Event ID: " + Event_ID)
             print ("Domain Name: Unknown")
             exit()
         else:
@@ -45,7 +46,7 @@ parser.add_option("-p", "--password", dest="password", default=None,
 (options, args) = parser.parse_args()
 
 config = ConfigParser()
-config.read('config.ini')
+config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
 proxies = config.get('DEFAULT','Proxies')
 if(proxies == ""):
@@ -60,7 +61,7 @@ else:
 engine = create_engine('sqlite:///IP_Report.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
 session = DBSession()           #Must be able to query database
-output = open("IPs/" + 'latest' +"v1.json","w")    #Output all downloaded json to a file
+output = open(os.path.join(os.path.dirname(__file__),"IPs/") + 'latest' +"v1.json","w")    #Output all downloaded json to a file
 
 whois = ""
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
@@ -139,7 +140,7 @@ Provided_IP = my_ip
 #IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
 if (my_ip is not "None"):    #If the -i option was used
-    print ('Event ID: ' + Event_ID)
+ #   print ('Event ID: ' + Event_ID)
 
     
     if(my_ip == ""):
@@ -193,6 +194,7 @@ if(domain_json['count']>0):
     print ("Total Reports on this IP: " + str(all_json['count']))
     #update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
 else:
+   print ("Domain Name: " + IP_Location)
    print ('No reports found for this IP')
 if len(sys.argv[1:]) == 0:
     parser.print_help()
