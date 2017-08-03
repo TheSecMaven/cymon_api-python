@@ -1,3 +1,4 @@
+#!/az/arcsight/counteract_scripts/env/bin/python
 #Miclain Keffeler
 #6/8/2017 
 __author__ = 'mkkeffeler'
@@ -30,7 +31,7 @@ def key_reader():
 Reads the .keynum file to determine which key is next to be used in list of 5 keys 
     '''
     my_num = 0
-    with open('.keynum') as f:
+    with open(os.path.join(os.path.dirname(__file__), '.keynum')) as f:
         lines = f.readlines()
         for line in lines:
             my_num = line[0]
@@ -40,7 +41,7 @@ def key_writer(my_key):
     '''
 Writes the newest key number to be used in the next run of this script
     '''
-    with open('.keynum','w') as f:
+    with open(os.path.join(os.path.dirname(__file__), '.keynum'),'w') as f:
         if(my_key == 6):
             f.write('1')
         else:
@@ -52,7 +53,7 @@ def get_key(key_num):
 Used to open and pull the actual token used to authenticate with Cymon
     '''
     my_token = ""
-    with open('.key' + key_num) as f:
+    with open(os.path.join(os.path.dirname(__file__),('.key' + key_num))) as f:
         lines = f.readlines()
         for line in lines:
             my_token = line.strip()
@@ -176,6 +177,7 @@ else:
 engine = create_engine('sqlite:///IP_Report.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
 session = DBSession()           #Must be able to query database
+output = open(os.path.join(os.path.dirname(__file__), 'IPs/') + 'latestv1.json','w')
 
 #Python option parser implementation
 parser = OptionParser()
@@ -205,12 +207,10 @@ if __name__ == "__main__":
     headers = {'Authorization': token}
     url = "https://cymon.io"
 
-(options, args) = parser.parse_args()
-Provided_IP = my_ip
-#print (Provided_IP)
-#IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
-#IP_exists_history = check_ip_exist(IP_History,Provided_IP)
-
+    Provided_IP = my_ip
+    #print (Provided_IP)
+    #IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
+    #IP_exists_history = check_ip_exist(IP_History,Provided_IP)
     if(my_ip == ""):
         print ("Domain Name: Unknown")
         exit()
