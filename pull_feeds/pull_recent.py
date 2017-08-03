@@ -28,11 +28,12 @@ import datetime
 
 config = ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), '../config.ini'))
-HOST= config.get('DEFAULT', 'HOST')                          #Get Hostname and Port to send CEF event to from Config.INI file
-PORT= config.get('DEFAULT', 'PORT')
+HOST = config.get('DEFAULT', 'HOST')                          #Get Hostname and Port to send CEF event to from Config.INI file
+PORT = config.get('DEFAULT', 'PORT')
 token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
 proxies = config.get('DEFAULT','Proxies')
-
+print (HOST)
+print (PORT)
 
 if(proxies == ""):
     auth = ""
@@ -79,7 +80,8 @@ DBSession = sessionmaker(bind = engine)
 session = DBSession()
 
 CONFIG = {}
-
+print (PORT)
+print (HOST)
 def syslog(message, level=5, facility=5, host=HOST, port=int(PORT)):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         data = '<%d>%s' % (level + facility*8, message)
@@ -118,25 +120,25 @@ if __name__ == "__main__":
             feed_data = all_json['data'][category]
             for entry in feed_data:
                  event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
-    else: 
-	past_json = json.load(open(os.path.join(os.path.dirname(__file__), last_filename.strip('\n')),'r'))
-	for category in event_types:
-	    past_feed_data = past_json['data'][category]
-	    feed_data = all_json['data'][category]
-	    for entry in feed_data:
-		for past_entry in past_feed_data:
-		    if(entry[which_field(category)] == past_entry[which_field(category)]):
-			print ("NO GO")
-			found_match = 1
-			break
-		if(found_match == 1):
-		    continue
-		else:
-		    print ("PUSHED")
-		    event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
-		    got_pushed = 1
-	    got_pushed = 0
-	    found_match = 0
+    else:
+        past_json = json.load(open(os.path.join(os.path.dirname(__file__), last_filename.strip('\n')),'r'))
+        for category in event_types:
+            past_feed_data = past_json['data'][category]
+            feed_data = all_json['data'][category]
+            for entry in feed_data:
+                for past_entry in past_feed_data:
+                    if(entry[which_field(category)] == past_entry[which_field(category)]):
+                        print ("NO GO")
+                        found_match = 1
+                        break
+                    if(found_match == 1):
+                        continue
+                    else:
+                        print ("PUSHED")
+                        event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
+                        got_pushed = 1
+            got_pushed = 0
+            found_match = 0
 with open(os.path.join(os.path.dirname(__file__), '.namelastcall'),'w') as f:
     f.write(filename)
     f.close()
