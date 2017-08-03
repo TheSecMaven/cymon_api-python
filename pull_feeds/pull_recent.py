@@ -44,15 +44,17 @@ else:
     proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
 
 last_filename = ""
-filename = "recent_feed-" + str(datetime.datetime.now().strftime('%FT%TZ')) + ".json"
-with open('.namelastcall') as f:
+filename = os.path.join(os.path.dirname(__file__),"recent_feed-" + str(datetime.datetime.now().strftime('%FT%TZ')) + ".json")
+with open(os.path.join(os.path.dirname(__file__), '.namelastcall')) as f:
     lines = f.readlines()
-    for line in lines: 
-        last_filename = line
-        print line
+    if( not lines):
+        last_filename = "None"
+    else:
+        for line in lines: 
+            last_filename = line
     f.close()
 
-output = open(filename,"w")
+output = open(os.path.join(os.path.dirname(__file__),filename),"w")
 link = "https://cymon.io/api/dashboard/v1/recent-objects/"
 response1 = ""
 if(proxies == ""):
@@ -111,26 +113,30 @@ if __name__ == "__main__":
 
 
     found_match=0
-    past_json = json.load(open(last_filename.strip('\n'),'r'))
-    for category in event_types:
-        past_feed_data = past_json['data'][category]
-        feed_data = all_json['data'][category]
-        #print "CATEGORY:" + (category)
-        for entry in feed_data:
-            for past_entry in past_feed_data:
-         #       print "CURRENT: " + entry[which_field(category)] + " OLD: " + past_entry[which_field(category)]  
-                if(entry[which_field(category)] == past_entry[which_field(category)]):
-                    print "NO GO"
-                    found_match = 1
-                    break
-            if(found_match == 1):
-                continue
-            else:
-                print "PUSHED"
-                event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
-                got_pushed = 1
-        got_pushed = 0
-        found_match = 0
-with open('.namelastcall','w') as f:
+    if(last_filename == "None"):
+        for category in event_types:
+            feed_data = all_json['data'][category]
+            for entry in feed_data:
+                 event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
+    else: 
+	past_json = json.load(open(os.path.join(os.path.dirname(__file__), last_filename.strip('\n')),'r'))
+	for category in event_types:
+	    past_feed_data = past_json['data'][category]
+	    feed_data = all_json['data'][category]
+	    for entry in feed_data:
+		for past_entry in past_feed_data:
+		    if(entry[which_field(category)] == past_entry[which_field(category)]):
+			print ("NO GO")
+			found_match = 1
+			break
+		if(found_match == 1):
+		    continue
+		else:
+		    print ("PUSHED")
+		    event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
+		    got_pushed = 1
+	    got_pushed = 0
+	    found_match = 0
+with open(os.path.join(os.path.dirname(__file__), '.namelastcall'),'w') as f:
     f.write(filename)
     f.close()
