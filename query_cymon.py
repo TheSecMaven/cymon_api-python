@@ -1,6 +1,6 @@
-#!/az/arcsight/counteract_scripts/env/bin/python
 #Miclain Keffeler
 #6/8/2017 
+__author__ = 'mkkeffeler'
 import requests
 import sys
 import json
@@ -22,48 +22,79 @@ from configparser import ConfigParser
 import urllib
 import getpass
 import os
-Event_ID = str(sys.argv[1])
-my_ip = "None"
+Event_ID = str(sys.argv[1])     #Event ID being passed in same placea
+my_ip = "None"   #For Global IP address 
+
+def key_reader():
+    '''
+Reads the .keynum file to determine which key is next to be used in list of 5 keys 
+    '''
+    my_num = 0
+    with open('.keynum') as f:
+        lines = f.readlines()
+        for line in lines:
+            my_num = line[0]
+    return my_num
+
+def key_writer(my_key):
+    '''
+Writes the newest key number to be used in the next run of this script
+    '''
+    with open('.keynum','w') as f:
+        if(my_key == 6):
+            f.write('1')
+        else:
+            f.write(str(my_key))
+        f.close()
+
+def get_key(key_num):
+    '''
+Used to open and pull the actual token used to authenticate with Cymon
+    '''
+    my_token = ""
+    with open('.key' + key_num) as f:
+        lines = f.readlines()
+        for line in lines:
+            my_token = line.strip()
+    return my_token
+
 def optional_arg(arg_default,Event_ID):
+##TODO Manage both an optional hostname and IP address without erroring out
+    '''
+Gets called as a callback action when -h option (hostname) is used. Will return 1 of 2 things based on the presence of a hostname
+    '''
     def func(option,opt_str,value,parser):
         if parser.rargs == []:
-#            print ("Event ID: " + Event_ID)
+            print ("Hostname Results: None")
+        else:
+            global my_domain
+            my_domain = parser.rargs[0]
+    return func
+
+def confirm_validity_of_token(token):
+    '''
+Confirms that a token was correctly provided and fits general format
+    '''
+    if 'Token' not in token:
+        print ("Event ID: " + Event_ID)
+        print ("Domain Name: Unknown")
+        print ("Token is not valid. Please check the variation of token you are using")
+        key_writer(int(key_reader())+1)
+        exit()
+
+def optional_arg2(arg_default,Event_ID):
+    '''
+Confirms the presence or lack of an IP address in -i option. 
+    '''
+    def func(option,opt_str,value,parser):
+        if len(parser.rargs) ==  0:
             print ("Domain Name: Unknown")
             exit()
         else:
-            
             global my_ip
             my_ip = parser.rargs[0]
     return func
-parser = OptionParser()
 
-parser.add_option("-i", "--ip",action='callback', dest="s_ip" , default="none",
-                      help="ip to be checked on cymon",callback=optional_arg('empty',Event_ID), metavar="ipaddress")                                           #Use this option to check an IP address
-parser.add_option("-u", "--user", dest="user_name" , default=None,
-                      help="Proxy Auth User Name", metavar="user")
-parser.add_option("-p", "--password", dest="password", default=None,
-                      help="Proxy Auth Password", metavar="passss")
-(options, args) = parser.parse_args()
-
-config = ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
-token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
-proxies = config.get('DEFAULT','Proxies')
-if(proxies == ""):
-    auth = ""
-else:
-    #TODO need to change from hardcoded arg indexes
-    authuser = options.user_name #str(input('What is the username for Proxy Auth: '))
-    authpassword = options.password #getpass.getpass('Password for Proxy:')
-    auth = authuser + ":" + authpassword
-    proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
-
-engine = create_engine('sqlite:///IP_Report.db')   #Setup the Database
-DBSession = sessionmaker(bind = engine)
-session = DBSession()           #Must be able to query database
-output = open(os.path.join(os.path.dirname(__file__),"IPs/") + 'latest' +"v1.json","w")    #Output all downloaded json to a file
-
-whois = ""
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
     if(proxies == ""):
         response = requests.get(apiurl, params='', headers=headers,timeout=20)
@@ -127,6 +158,47 @@ def get_current_info(column_number,review_count,Provided_IP,all_json):          
     else:
         return all_json["results"][0][attr]  #For every report except the most recent report (Which is current, not history)
 
+
+
+config = ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
+token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
+proxies = config.get('DEFAULT','Proxies')
+if(proxies == ""):
+    auth = ""
+else:
+    #TODO need to change from hardcoded arg indexes
+    authuser = options.user_name #str(input('What is the username for Proxy Auth: '))
+    authpassword = options.password #getpass.getpass('Password for Proxy:')
+    auth = authuser + ":" + authpassword
+    proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
+
+engine = create_engine('sqlite:///IP_Report.db')   #Setup the Database
+DBSession = sessionmaker(bind = engine)
+session = DBSession()           #Must be able to query database
+
+#Python option parser implementation
+parser = OptionParser()
+
+parser.add_option("-i", "--ip",action='callback', dest="s_ip" , default="none",
+                      help="ip to be checked on cymon",callback=optional_arg2('empty',Event_ID), metavar="ipaddress")                                           #Use this option to check an IP address
+parser.add_option("-t", "--hostname",action='callback', dest="s_hostname" , default="none",                                                   #-h still under development
+                      help="hostname to be checked on cymon",callback=optional_arg('empty',Event_ID), metavar="hostname") 
+parser.add_option("-1", "--1key",action='store_true',dest="is1key" , default=False,
+                      help="If specified, this will set the token used for authentication to come from the config.ini file",metavar="hostname") #Used to specify how the script pulls keys
+parser.add_option("-u", "--user", dest="user_name" , default=None,
+                      help="Proxy Auth User Name", metavar="user")         #-u and -p are for proxy authentication when it is required
+parser.add_option("-p", "--password", dest="password", default=None,
+                      help="Proxy Auth Password", metavar="passss")
+(options, args) = parser.parse_args()
+
+if(options.is1key == True):
+    token = config.get('DEFAULT','TOKEN')
+else:
+    token = get_key(key_reader())     
+confirm_validity_of_token(token) 
+key_writer(int(key_reader()) + 1)           #Get API Key and Password from Config.INI file
+
 if __name__ == "__main__":
     Event_ID = str(sys.argv[1])
 
@@ -139,23 +211,22 @@ Provided_IP = my_ip
 #IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
 #IP_exists_history = check_ip_exist(IP_History,Provided_IP)
 
-if (my_ip is not "None"):    #If the -i option was used
- #   print ('Event ID: ' + Event_ID)
-
-    
     if(my_ip == ""):
         print ("Domain Name: Unknown")
         exit()
     scanurl = my_ip
+    #domain_name = my_domain
     apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/events/"
     all_json = send_request(apiurl, scanurl, headers,output)
     apiurl = url + '/api/nexus/v1/ip/' + scanurl + '/domains/'
     domain_json = send_request(apiurl,scanurl,headers,output)
-if(domain_json['count'] != 0):
-    IP_Location = domain_json["results"][0]['name']
-else:
-    IP_Location = "Unknown"
-     
+    #apiurl = url + '/api/nexus/v1/domain/' + domain_name
+    #domain_search = send_request(apiurl,scanurl,headers,output)
+    #json.dump(domain_search,open('test.json','w'))
+    if(domain_json['count'] != 0):
+        IP_Location = domain_json["results"][0]['name']
+    else:
+        IP_Location = "Unknown"
 #Used to hold categories of an IP or URL that have already been listed in the report.
 #update_both_tables(1,IP_Location,Provided_IP)
 if(domain_json['count']>0):
