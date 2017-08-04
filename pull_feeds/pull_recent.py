@@ -66,7 +66,6 @@ all_json = response.json()
 output.write(json.dumps(all_json,indent=4,sort_keys=True))
 
 past_filename = last_filename
-
 def which_field(category):
     if(category == 'recent_domains'):
         return 'name'
@@ -123,23 +122,24 @@ if __name__ == "__main__":
             feed_data = all_json['data'][category]
             for entry in feed_data:
                 for past_entry in past_feed_data:
+                    print ("PAST: " + past_entry[which_field(category)] + " CUR: " + entry[which_field(category)])
                     if(entry[which_field(category)] == past_entry[which_field(category)]):
                         print ("NO GO")
                         found_match = 1
                         break
-                    if(found_match == 1):
-                        continue
                     else:
-                        print ("PUSHED")
-                        event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
-                        syslog(event)
-                        got_pushed = 1
+                        found_match = 0
+                if(found_match == 0):
+                    print ("PUSHED")
+                    event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
+                    syslog(event)
+                    got_pushed = 1
             got_pushed = 0
             found_match = 0
-    if(last_filename == "None"):
-        checked = 0
-    else:
-        os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)),last_filename))
+  #  if(last_filename == "None"):
+  #      checked = 0
+  #  else:
+  #      os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)),last_filename))
 with open(os.path.join(os.path.dirname(__file__), '.namelastcall'),'w') as f:
     f.write(filename)
     f.close()
