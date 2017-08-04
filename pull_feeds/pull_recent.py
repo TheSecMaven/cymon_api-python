@@ -139,7 +139,7 @@ if __name__ == "__main__":
     if(last_filename == "None"):
         checked = 0
     else:
-        os.remove(last_filename)
+        os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)),last_filename))
 with open(os.path.join(os.path.dirname(__file__), '.namelastcall'),'w') as f:
     f.write(filename)
     f.close()
