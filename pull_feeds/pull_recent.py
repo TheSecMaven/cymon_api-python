@@ -136,6 +136,10 @@ if __name__ == "__main__":
                         got_pushed = 1
             got_pushed = 0
             found_match = 0
+    if(last_filename == "None"):
+        checked = 0
+    else:
+        os.remove(last_filename)
 with open(os.path.join(os.path.dirname(__file__), '.namelastcall'),'w') as f:
     f.write(filename)
     f.close()

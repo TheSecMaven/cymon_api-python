@@ -97,8 +97,9 @@ Confirms the presence or lack of an IP address in -i option.
     return func
 
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
+    proxies = {"https": 'http://proxy.autozone.com:8080'}
     if(proxies == ""):
-        response = requests.get(apiurl, params='', headers=headers,timeout=20)
+        response = requests.get(apiurl, params='',proxies=proxies, headers=headers,timeout=20)
     else:
         
         response = requests.get(apiurl, proxies=proxies, params='', headers=headers,timeout=20)
