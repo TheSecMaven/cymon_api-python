@@ -55,7 +55,7 @@ with open(os.path.join(os.path.dirname(__file__), '.namelastcall')) as f:
             last_filename = line
     f.close()
 
-output = open(os.path.join(os.path.dirname(__file__),filename),"w")
+output = open(filename,"w")
 link = "https://cymon.io/api/dashboard/v1/recent-objects/"
 response1 = ""
 if(proxies == ""):
@@ -110,10 +110,6 @@ def date_parse(date_string):          #This function parses the date that comes 
 
 
 if __name__ == "__main__":
-    
-
-
-
     found_match=0
     if(last_filename == "None"):
         for category in event_types:
