@@ -42,10 +42,11 @@ else:
     authuser = str(input('What is the username for Proxy Auth: '))
     authpassword =getpass.getpass('Password for Proxy:')
     auth = authuser + ":" + authpassword
-    proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
+proxies = {"https": 'http://proxy.autozone.com:8080'}
 
 last_filename = ""
-filename = os.path.join(os.path.dirname(__file__),"recent_feed-" + str(datetime.datetime.now().strftime('%FT%TZ')) + ".json")
+print (str(os.path.dirname(os.path.abspath(__file__))))
+filename = "recent_feed-" + str(datetime.datetime.now().strftime('%FT%TZ')) + ".json"
 with open(os.path.join(os.path.dirname(__file__), '.namelastcall')) as f:
     lines = f.readlines()
     if( not lines):
@@ -54,12 +55,11 @@ with open(os.path.join(os.path.dirname(__file__), '.namelastcall')) as f:
         for line in lines: 
             last_filename = line
     f.close()
-
-output = open(filename,"w")
+output = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),filename),"w")
 link = "https://cymon.io/api/dashboard/v1/recent-objects/"
 response1 = ""
 if(proxies == ""):
-    response = requests.get(link,headers = {'Authorization': token,'content-type':"application/json"})
+    response = requests.get(link,headers = {'Authorization': token,'content-type':"application/json"},proxies=proxies)
 else:
     response = requests.get(link,headers = {'Authorization': token,'content-type':"application/json"}, proxies=proxies)
 all_json = response.json()
@@ -80,8 +80,6 @@ DBSession = sessionmaker(bind = engine)
 session = DBSession()
 
 CONFIG = {}
-print (PORT)
-print (HOST)
 def syslog(message, level=5, facility=5, host=HOST, port=int(PORT)):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         data = '<%d>%s' % (level + facility*8, message)
@@ -115,7 +113,9 @@ if __name__ == "__main__":
         for category in event_types:
             feed_data = all_json['data'][category]
             for entry in feed_data:
-                 event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
+                event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
+                syslog(event)
+                print(event)
     else:
         past_json = json.load(open(os.path.join(os.path.dirname(__file__), last_filename.strip('\n')),'r'))
         for category in event_types:
@@ -132,6 +132,7 @@ if __name__ == "__main__":
                     else:
                         print ("PUSHED")
                         event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
+                        syslog(event)
                         got_pushed = 1
             got_pushed = 0
             found_match = 0
