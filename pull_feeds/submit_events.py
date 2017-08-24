@@ -38,16 +38,13 @@ filename = sys.argv[1]
 print (filename)
 
 
-if(proxies == ""):
+if(proxies == ""):  #If proxy was specified
     auth = ""
 else:
     #TODO need to change from hardcoded arg indexes
-    authuser = str(input('What is the username for Proxy Auth: '))
-    authpassword =getpass.getpass('Password for Proxy:')
-    auth = authuser + ":" + authpassword
-    proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
+    proxies = {"https": 'http://' + proxies}
 
-def which_field(category):
+def which_field(category):   #Get appropriate json key based on what we are looking at now
     if(category == 'recent_domains'):
         return 'name'
     if(category == 'recent_ips'):
@@ -61,7 +58,7 @@ session = DBSession()
 
 CONFIG = {}
 
-def syslog(message, level=5, facility=5, host=HOST, port=int(PORT)):
+def syslog(message, level=5, facility=5, host=HOST, port=int(PORT)):  #Sends generated cef event to provided host and port in config.ini
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         data = '<%d>%s' % (level + facility*8, message)
         sock.sendto(data.encode(), (host, (port)))
@@ -103,12 +100,12 @@ if __name__ == "__main__":
         'warning': 4, 'notice': 5, 'info': 6, 'debug': 7
 }  
 
-    all_json = json.load(open(filename,'r'))
+    all_json = json.load(open(filename,'r'))    #Load the file
 
     for category in event_types:
         feed_data = all_json['data'][category]
         print (category)
-        for entry in feed_data:
+        for entry in feed_data:   #Generate events for all entries
             event = generate_cef_event(category,entry[which_field(category)],entry['updated'])
             syslog(event)
             print(event)
