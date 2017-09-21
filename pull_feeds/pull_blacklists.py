@@ -25,15 +25,10 @@ config = ConfigParser()
 config.read('../config.ini')
 token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
 proxies = config.get('DEFAULT','Proxies')
-authuser = str(input('What is the username for Proxy Auth: '))
-authpassword = str(getpass.getpass('Password for Proxy:'))
-auth = authuser + ":" + authpassword
-if(proxies == ""):
+if(proxies == ""):   #If proxy is specified in config.ini file
     auth = ""
 else:
-    #TODO need to change from hardcoded arg indexes
-    auth = authuser + ":" + authpassword
-    proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
+    proxies = {"https": 'http://' + proxies}
 
 engine = create_engine('sqlite:///IP_Report.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
@@ -41,9 +36,10 @@ session = DBSession()           #Must be able to query database
 output = open(sys.argv[2]+"v2.json","w")    #Output all downloaded json to a file
 
 whois = ""
+
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
     print (apiurl) 
-    if(proxies == ""):
+    if(proxies == ""):  #If proxy settings have not been specified in config
         response = requests.get(apiurl, params='', headers=headers,timeout=20)
     else:
         response = requests.get(apiurl, proxies=proxies, params='', headers=headers,timeout=20,verify=True)
@@ -109,17 +105,19 @@ if __name__ == "__main__":
     url = "https://api.cymon.io/v2"
     apiurl = url + "/v2/auth/login"
     cymon_user = str(input('What is the username for Cymon v2: '))
-    cymon_password = getpass.getpass('Password for Cymon Account:')
+    cymon_password = getpass.getpass('Password for Cymon Account:')         #Specify user and password from user when being run
     post = {"username":cymon_user,"password":cymon_password}
-
-    jwt = requests.post('https://api.cymon.io/v2/auth/login',proxies=proxies,data=json.dumps(post),headers=headers,verify=True)
+    if(proxies = ""):
+        jwt = requests.post('https://api.cymon.io/v2/auth/login',data=json.dumps(post),headers=headers,verify=True)
+    else:
+        jwt = requests.post('https://api.cymon.io/v2/auth/login',proxies=proxies,data=json.dumps(post),headers=headers,verify=True)
     mytoken = jwt.json()
-    jwt = str(mytoken['jwt']) + " "
+    jwt = str(mytoken['jwt']) + " "  #Get JWT token from login
     print (mytoken)
     parser = OptionParser()
     parser.add_option("--pull", "--pull", dest="s_category" , default="none",
                       help="Categories that can be pulled: malware,botnet,spam,phishing,malicious activity(must be in \"),blacklist, and dnsbl", metavar="listname")                                           #Use this option to check an IP addres
-parser.add_option("--max", "--max", dest="s_max" , default="none",
+    parser.add_option("--max", "--max", dest="s_max" , default="none",
                       help="Max number of IPs to be returned", metavar="max") 
 
 (options, args) = parser.parse_args()
@@ -129,13 +127,13 @@ if len(sys.argv[1:]) == 0:
     parser.print_help()
 
 
-if (options.s_category is not "none"):
+if (options.s_category is not "none"):    #Must have category specified
         scanurl = ""
-        headers={'Authorization':'mkkeffeler ' + str(jwt)}
+        headers={'Authorization':'Bearer ' + str(jwt)}
         category = str(options.s_category)                         #Categories that can be queried: malware, botnet,spam,phishing,malicious activity, blacklist, and dnsbl
         apiurl = url + "/query/tags/" + category
-        all_json = send_request(apiurl,category+scanurl,headers,output)
+        all_json = send_request(apiurl,category+scanurl,headers,output)  #Pull blacklist info requested with jwt token
 
-for IP in all_json['results']:            #Will eventually store addresses
+for IP in all_json['results']:            #Will eventually store addresses, prints IPs in list now
     print (IP['addr'])
 

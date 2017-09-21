@@ -28,7 +28,8 @@ import os
 from configparser import ConfigParser
 import getpass
 import codecs
-def dynamic_event_names(category):
+
+def dynamic_event_names(category):   #Names the event based on what it is
     if(category == 'recent_domains'):
         return 'Known Malicious Domain'
     if(category == 'recent_ips'):
@@ -36,7 +37,7 @@ def dynamic_event_names(category):
     if(category == 'recent_urls'):
         return 'Known Malicious URL'
 
-def which_field(category):
+def which_field(category):           #Used to specify a cef custom field based on what information is being pulled
     if(category == 'recent_domains'):
         return '|shost='
     if(category == 'recent_ips'):
@@ -50,7 +51,7 @@ def date_parse(date_string):                          #This function parses the 
     f = codecs.open('test', encoding='utf-8', mode='w+')
 
 
-def generate_cef_event(category,to_be_blacklisted,updated_time):
+def generate_cef_event(category,to_be_blacklisted,updated_time):   #Called from other scripts to compile and completely generate the text for cef event
     message = ""
     event_name = str(dynamic_event_names(category))
     message = "Blacklisted Item: " + str(codecs.decode(to_be_blacklisted,'unicode_escape').replace('=', '\\=')) + " Updated: " + str(date_parse(updated_time)) 

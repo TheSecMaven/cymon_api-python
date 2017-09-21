@@ -26,10 +26,7 @@ import os
 Event_ID = str(sys.argv[1])     #Event ID being passed in same placea
 my_ip = "None"   #For Global IP address 
 
-def key_reader():
-    '''
-Reads the .keynum file to determine which key is next to be used in list of 5 keys 
-    '''
+def key_reader(): #Reads the .keynum file to determine which key is next to be used in list of 5 keys 
     my_num = 0
     with open(os.path.join(os.path.dirname(__file__), '.keynum')) as f:
         lines = f.readlines()
@@ -37,10 +34,7 @@ Reads the .keynum file to determine which key is next to be used in list of 5 ke
             my_num = line[0]
     return my_num
 
-def key_writer(my_key):
-    '''
-Writes the newest key number to be used in the next run of this script
-    '''
+def key_writer(my_key): #Writes the newest key number to be used in the next run of this script
     with open(os.path.join(os.path.dirname(__file__), '.keynum'),'w') as f:
         if(my_key == 6):
             f.write('1')
@@ -48,10 +42,7 @@ Writes the newest key number to be used in the next run of this script
             f.write(str(my_key))
         f.close()
 
-def get_key(key_num):
-    '''
-Used to open and pull the actual token used to authenticate with Cymon
-    '''
+def get_key(key_num): #Used to open and pull the actual token used to authenticate with Cymon
     my_token = ""
     with open(os.path.join(os.path.dirname(__file__),('.key' + key_num))) as f:
         lines = f.readlines()
@@ -59,11 +50,7 @@ Used to open and pull the actual token used to authenticate with Cymon
             my_token = line.strip()
     return my_token
 
-def optional_arg(arg_default,Event_ID):
-##TODO Manage both an optional hostname and IP address without erroring out
-    '''
-Gets called as a callback action when -h option (hostname) is used. Will return 1 of 2 things based on the presence of a hostname
-    '''
+def optional_arg(arg_default,Event_ID): #Gets called as a callback action when -h option (hostname) is used. Will return 1 of 2 things based on the presence of a hostname
     def func(option,opt_str,value,parser):
         if parser.rargs == []:
             print ("Hostname Results: None")
@@ -72,10 +59,7 @@ Gets called as a callback action when -h option (hostname) is used. Will return 
             my_domain = parser.rargs[0]
     return func
 
-def confirm_validity_of_token(token):
-    '''
-Confirms that a token was correctly provided and fits general format
-    '''
+def confirm_validity_of_token(token): #Confirms that a token was correctly provided and fits general format
     if 'Token' not in token:
         print ("Event ID: " + Event_ID)
         print ("Domain Name: Unknown")
@@ -83,11 +67,8 @@ Confirms that a token was correctly provided and fits general format
         key_writer(int(key_reader())+1)
         exit()
 
-def optional_arg2(arg_default,Event_ID):
-    '''
-Confirms the presence or lack of an IP address in -i option. 
-    '''
-    def func(option,opt_str,value,parser):
+def optional_arg2(arg_default,Event_ID): #Confirms the presence or lack of an IP address in -i option. 
+    def func(option,opt_str,value,parser):   #Function to hold parser data
         if len(parser.rargs) ==  0:
             print ("Domain Name: Unknown")
             exit()
@@ -97,11 +78,9 @@ Confirms the presence or lack of an IP address in -i option.
     return func
 
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
-    proxies = {"https": 'http://proxy.autozone.com:8080'}
-    if(proxies == ""):
+    if(proxies == ""):  #If no proxy is specified
         response = requests.get(apiurl, params='',proxies=proxies, headers=headers,timeout=20)
     else:
-        
         response = requests.get(apiurl, proxies=proxies, params='', headers=headers,timeout=20)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
@@ -165,15 +144,11 @@ def get_current_info(column_number,review_count,Provided_IP,all_json):          
 config = ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 token = config.get('DEFAULT', 'TOKEN')                          #Get API Key and Password from Config.INI file
-proxies = config.get('DEFAULT','Proxies')
+proxies = config.get('DEFAULT','Proxies')   #Check for proxy settings if applicable
 if(proxies == ""):
     auth = ""
 else:
-    #TODO need to change from hardcoded arg indexes
-    authuser = options.user_name #str(input('What is the username for Proxy Auth: '))
-    authpassword = options.password #getpass.getpass('Password for Proxy:')
-    auth = authuser + ":" + authpassword
-    proxies = {"https": 'http://' + authuser + ':' + authpassword + '@' + proxies}
+    proxies = {"https": 'http://' +  proxies}
 
 engine = create_engine('sqlite:///IP_Report.db')   #Setup the Database
 DBSession = sessionmaker(bind = engine)
@@ -195,9 +170,10 @@ parser.add_option("-p", "--password", dest="password", default=None,
                       help="Proxy Auth Password", metavar="passss")
 (options, args) = parser.parse_args()
 
+#If we are only using 1 api key specified in config file
 if(options.is1key == True):
     token = config.get('DEFAULT','TOKEN')
-else:
+else:  #Otherwsie, we will be getting our key from the .key1_.5 files. Check for validity
     token = get_key(key_reader())     
 confirm_validity_of_token(token) 
 key_writer(int(key_reader()) + 1)           #Get API Key and Password from Config.INI file
@@ -209,24 +185,19 @@ if __name__ == "__main__":
     url = "https://cymon.io"
 
     Provided_IP = my_ip
-    #print (Provided_IP)
-    #IP_exists = check_ip_exist(IP_Current,Provided_IP)              #Check if the IP provided exists in the table already. If so, they we don't need to create another entry
-    #IP_exists_history = check_ip_exist(IP_History,Provided_IP)
-    if(my_ip == ""):
+    
+    if(my_ip == ""):  #If no IP is specified
         print ("Domain Name: Unknown")
         exit()
     scanurl = my_ip
-    #domain_name = my_domain
     apiurl = url + "/api/nexus/v1/ip/" + scanurl + "/events/"
-    all_json = send_request(apiurl, scanurl, headers,output)
+    all_json = send_request(apiurl, scanurl, headers,output)    #Get event and domain name information on IP specified from Cymon
     apiurl = url + '/api/nexus/v1/ip/' + scanurl + '/domains/'
     domain_json = send_request(apiurl,scanurl,headers,output)
-    #apiurl = url + '/api/nexus/v1/domain/' + domain_name
-    #domain_search = send_request(apiurl,scanurl,headers,output)
-    #json.dump(domain_search,open('test.json','w'))
-    if(domain_json['count'] != 0):
+    
+    if(domain_json['count'] != 0):   #If we have results 
         IP_Location = domain_json["results"][0]['name']
-    else:
+    else:  #Cymon didn't have anything on location
         IP_Location = "Unknown"
 #Used to hold categories of an IP or URL that have already been listed in the report.
 #update_both_tables(1,IP_Location,Provided_IP)
@@ -237,8 +208,6 @@ if(domain_json['count']>0):
     key_count = 0                                           #Declarations
     category_count = 0
     review_count = 0
-    #update_both_tables(4,get_current_info(0,review_count,Provided_IP,all_json),Provided_IP)             #Update Categorization of IP on Current Table   ***TO_DO*** (needs to only update current, not historic) ***TO_DO***
-    review_count =0
     domain_flag=0
     domain_name = ""
     for key in all_json['results']:    #For every entry in the json output 
@@ -248,24 +217,20 @@ if(domain_json['count']>0):
         else:       #Since we already have this IP in our DB,
                 
              
-            #update_historic_category = session.query(IP_History).filter(IP_History.IP == Provided_IP).one()
             if category_count == 0:    #If this is the first categorization that has been assigned to this IP
-                #update_historic_category.Category = str(key['tag'])
                 historic_categories = str(key['tag'])
                 category_count += 1
             else:   #Otherwise we need commas and to keep what was already in there
-                #update_historic_category.Category = update_historic_category.Category + " , " + str(key['tag'])
                 historic_categories = historic_categories + " , " + str(key['tag'])
                 category_count += 1 
             session.commit()
 
             already_categorized.append(key['tag'])   #Add the category to the list of already printed categories so we don't repeat
+    
     print ('Domain Name: ' + IP_Location)
-
     print ('All Historical Categorizations: ' + historic_categories)
     print ("Total Reports on this IP: " + str(all_json['count']))
-    #update_both_tables(2,date_parse(str(get_current_info(1,review_count,Provided_IP,all_json))),Provided_IP)   #Adds the latest security check on this IP address to IP_Current Table information
-else:
+else:  #If no results were obtained
    print ("Domain Name: " + IP_Location)
    print ('No reports found for this IP')
 if len(sys.argv[1:]) == 0:
