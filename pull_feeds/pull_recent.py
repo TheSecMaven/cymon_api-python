@@ -116,7 +116,7 @@ if __name__ == "__main__":
                 syslog(event)
                 print(event)
     else:
-        past_json = json.load(open(os.path.join(os.path.dirname(__file__), last_filename.strip('\n')),'r'))
+        past_json = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), last_filename.strip('\n')),'r'))
         for category in event_types:
             past_feed_data = past_json['data'][category]
             feed_data = all_json['data'][category]
@@ -136,10 +136,10 @@ if __name__ == "__main__":
                     got_pushed = 1
             got_pushed = 0
             found_match = 0
-  #  if(last_filename == "None"):
-  #      checked = 0
-  #  else:
-  #      os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)),last_filename))
+    if(last_filename == "None"):
+        checked = 0
+    else:
+        os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)),last_filename))
 with open(os.path.join(os.path.dirname(__file__), '.namelastcall'),'w') as f:
     f.write(filename)
     f.close()
