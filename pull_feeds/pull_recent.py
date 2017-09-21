@@ -36,7 +36,8 @@ proxies = config.get('DEFAULT','Proxies')
 if(proxies == ""):
     auth = ""
 else:
-proxies = {"https": 'https://' + proxies}
+    proxies = {"https": 'https://' + proxies}
+
 
 last_filename = ""
 filename = "recent_feed-" + str(datetime.datetime.now().strftime('%FT%TZ')) + ".json"
