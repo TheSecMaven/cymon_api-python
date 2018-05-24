@@ -79,6 +79,7 @@ def optional_arg2(arg_default,Event_ID): #Confirms the presence or lack of an IP
 
 def send_request(apiurl, scanurl, headers,output):   #This function makes a request to the X-Force Exchange API using a specific URL and headers. 
     response = requests.get(apiurl, params='',proxies=proxies, headers=headers,timeout=20)
+    #print (response)
     all_json = response.json()
     output.write(json.dumps(all_json,indent=4,sort_keys=True))
     return all_json

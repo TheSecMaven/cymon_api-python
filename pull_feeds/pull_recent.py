@@ -136,7 +136,7 @@ if __name__ == "__main__":
     if(last_filename == "None"):   
         checked = 0
     else:   #Be sure to remove old file so we don't take up diskspace
-        os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)),last_filename))
+        os.remove(os.path.join(os.path.dirname(os.path.abspath(__file__)),last_filename[:-1]))
 with open(os.path.join(os.path.dirname(__file__), '.namelastcall'),'w') as f:   #Set new name of file for next run
     f.write(filename)
     f.close()
